@@ -72,4 +72,4 @@ Leads are stored in memory by default — replace `lib/store.ts` with Postgres/R
 
 ## Deploy
 
-Deploy to Vercel, Render, or any Node host. Set environment variables in the dashboard.
+Deploy to Vercel, Render, Hostinger Node.js, or any Node host. Set environment variables in the dashboard.
