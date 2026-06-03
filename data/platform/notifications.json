@@ -1,0 +1,11 @@
+[
+  {
+    "id": "notif-1",
+    "organization_id": "org-drg-001",
+    "type": "handoff",
+    "title": "Human handoff required",
+    "message": "Kwame Mensah conversation needs a sales rep.",
+    "status": "unread",
+    "created_at": "2026-05-18T12:42:50.607Z"
+  }
+]

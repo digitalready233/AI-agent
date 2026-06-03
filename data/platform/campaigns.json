@@ -1,0 +1,23 @@
+[
+  {
+    "id": "camp-001",
+    "organization_id": "org-drg-001",
+    "agent_id": "agent-sales-001",
+    "name": "Warm Lead Follow-up — May",
+    "campaign_type": "follow_up",
+    "status": "live",
+    "scheduled_at": "2026-05-18T12:42:50.607Z",
+    "created_at": "2026-05-18T12:42:50.607Z",
+    "updated_at": "2026-05-18T12:42:50.607Z"
+  },
+  {
+    "id": "camp-002",
+    "organization_id": "org-drg-001",
+    "agent_id": "agent-sales-001",
+    "name": "Re-engage Cold Leads",
+    "campaign_type": "outbound",
+    "status": "draft",
+    "created_at": "2026-05-18T12:42:50.607Z",
+    "updated_at": "2026-05-18T12:42:50.607Z"
+  }
+]

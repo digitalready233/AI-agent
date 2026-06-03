@@ -1,0 +1,117 @@
+.shell {
+  min-height: 100vh;
+  padding: clamp(1.5rem, 5vw, 3rem);
+  max-width: 960px;
+  margin: 0 auto;
+  color: var(--text, #eceff4);
+  background: var(--bg, #0c0f14);
+}
+
+.header {
+  margin-bottom: 2.5rem;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.72rem;
+  opacity: 0.65;
+  margin: 0 0 0.5rem;
+}
+
+.title {
+  font-size: clamp(1.65rem, 4vw, 2.25rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.75rem;
+}
+
+.lead {
+  margin: 0;
+  max-width: 52ch;
+  line-height: 1.55;
+  opacity: 0.85;
+  font-size: 0.95rem;
+}
+
+.lead a {
+  color: color-mix(in srgb, var(--accent, #8b9fe8) 80%, #fff);
+}
+
+.grid {
+  display: grid;
+  gap: 1.25rem;
+}
+
+@media (min-width: 700px) {
+  .grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .card:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+.card {
+  border-radius: 1rem;
+  padding: 1.35rem;
+  border: 1px solid color-mix(in srgb, var(--text) 12%, transparent);
+  background: color-mix(in srgb, var(--text) 5%, transparent);
+}
+
+.card h2 {
+  font-size: 1.05rem;
+  margin: 0 0 0.65rem;
+}
+
+.card p {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  opacity: 0.88;
+}
+
+.muted {
+  opacity: 0.65 !important;
+  font-size: 0.86rem !important;
+}
+
+.btn {
+  display: inline-flex;
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent, #5c7cfa) 88%, #fff);
+  color: #0c0f14;
+  font-weight: 600;
+  font-size: 0.88rem;
+  text-decoration: none;
+}
+
+.embed {
+  margin-top: 0.75rem;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--text) 10%, transparent);
+}
+
+.embed iframe {
+  width: 100%;
+  height: min(420px, 50vh);
+  border: none;
+  display: block;
+}
+
+.back {
+  margin-top: 2.5rem;
+  font-size: 0.88rem;
+  opacity: 0.7;
+}
+
+.back a {
+  color: inherit;
+}
+
+.shell :global(code) {
+  font-size: 0.78em;
+  opacity: 0.9;
+}

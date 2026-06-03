@@ -1,0 +1,162 @@
+@import "tailwindcss";
+@import "./globals.platform.css";
+
+/*
+ * DigiSales Reserve — unified palette (landing + platform + widgets)
+ *
+ * Ink foundations · Champagne primary · Sea accent · Jade success
+ */
+:root {
+  /* Ink — warm obsidian (not cold blue-black) */
+  --bg: #070708;
+  --bg-elevated: #0e0e11;
+  --bg-deep: #040405;
+  --surface: #141418;
+  --surface-hover: #1c1c22;
+  --surface-glass: rgba(20, 20, 24, 0.82);
+
+  /* Ivory text hierarchy */
+  --text: #faf8f5;
+  --text-secondary: #b8b4ad;
+  --text-muted: #726e68;
+
+  /* Borders — warm white, not sterile gray */
+  --border: rgba(255, 252, 248, 0.07);
+  --border-strong: rgba(255, 252, 248, 0.14);
+  --border-brand: rgba(201, 169, 110, 0.38);
+  --border-gold: var(--border-brand);
+
+  /* Champagne — primary brand / CTAs */
+  --brand: #c9a96e;
+  --brand-light: #e8d4a8;
+  --brand-dim: #8a7044;
+  --brand-soft: rgba(201, 169, 110, 0.11);
+  --brand-glow: rgba(201, 169, 110, 0.26);
+  --on-brand: #1c1812;
+
+  /* Gold aliases (landing + legacy) */
+  --gold: var(--brand);
+  --gold-light: var(--brand-light);
+  --gold-dim: var(--brand-dim);
+  --gold-soft: var(--brand-soft);
+  --gold-glow: var(--brand-glow);
+
+  /* Sea — secondary accent (trust, focus, tech) */
+  --accent: #6db8c4;
+  --accent-light: #9fd4dc;
+  --accent-dim: #4a98a8;
+  --accent-soft: rgba(109, 184, 196, 0.1);
+  --accent-glow: rgba(109, 184, 196, 0.22);
+  --cyan: var(--accent);
+  --cyan-soft: var(--accent-soft);
+
+  /* Legacy accent-warm maps to brand */
+  --accent-warm: var(--brand-light);
+
+  /* Semantic */
+  --success: #52c9a0;
+  --success-light: #7ee4be;
+  --success-soft: rgba(82, 201, 160, 0.12);
+  --destructive: #e07a7a;
+  --destructive-soft: rgba(224, 122, 122, 0.12);
+  --warning: #d4a64a;
+
+  /* Radii & motion */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-full: 999px;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Elevation */
+  --shadow-soft: 0 32px 100px rgba(0, 0, 0, 0.65);
+  --shadow-card: 0 1px 0 rgba(255, 252, 248, 0.06) inset, 0 24px 64px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 120px rgba(201, 169, 110, 0.07);
+}
+
+@theme {
+  --color-background: var(--bg);
+  --color-foreground: var(--text);
+
+  /* Warm slate scale — platform UI inherits luxury neutrals */
+  --color-slate-950: #070708;
+  --color-slate-900: #0e0e11;
+  --color-slate-800: #1a1a20;
+  --color-slate-700: #25252d;
+  --color-slate-600: #3d3d48;
+  --color-slate-500: #726e68;
+  --color-slate-400: #98948c;
+  --color-slate-300: #b8b4ad;
+  --color-slate-200: #d4d0c8;
+  --color-slate-100: #faf8f5;
+
+  /* Refined sea accent */
+  --color-cyan-950: #0a1a1d;
+  --color-cyan-900: #143038;
+  --color-cyan-800: #1f4550;
+  --color-cyan-700: #2d6574;
+  --color-cyan-600: #4a98a8;
+  --color-cyan-500: #6db8c4;
+  --color-cyan-400: #9fd4dc;
+  --color-cyan-300: #b8e2e8;
+  --color-cyan-200: #d4eef2;
+  --color-cyan-100: #e8f6f8;
+
+  /* Champagne for amber-class utilities */
+  --color-amber-950: #1c1812;
+  --color-amber-900: #3d3220;
+  --color-amber-800: #5c4a2e;
+  --color-amber-700: #8a7044;
+  --color-amber-600: #a88952;
+  --color-amber-500: #c9a96e;
+  --color-amber-400: #e8d4a8;
+  --color-amber-300: #f0e2c4;
+  --color-amber-200: #f7eeda;
+  --color-amber-100: #fcf6eb;
+
+  --color-emerald-400: #52c9a0;
+  --color-emerald-500: #3db88a;
+
+  --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  html,
+  body {
+    min-height: 100%;
+    color: var(--text);
+    font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body:not(:has(.platform-shell)):not(:has(.platform-auth-shell)) {
+    background-color: var(--bg);
+    background-image:
+      radial-gradient(ellipse 100% 70% at 50% -25%, rgba(201, 169, 110, 0.12), transparent 55%),
+      radial-gradient(ellipse 55% 45% at 100% 5%, rgba(109, 184, 196, 0.07), transparent 50%),
+      radial-gradient(ellipse 40% 30% at 0% 85%, rgba(201, 169, 110, 0.05), transparent 45%),
+      var(--bg);
+    color: var(--text);
+  }
+
+  ::selection {
+    background: var(--brand-soft);
+    color: var(--text);
+  }
+
+  .font-display {
+    font-family: var(--font-display), var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  }
+}

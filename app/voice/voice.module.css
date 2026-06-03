@@ -1,0 +1,134 @@
+.shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: clamp(1.25rem, 4vw, 3rem);
+  background: radial-gradient(
+      120% 80% at 50% -20%,
+      color-mix(in srgb, var(--accent, #3d5a80) 22%, transparent),
+      transparent
+    ),
+    var(--bg, #0c0f14);
+  color: var(--text, #eceff4);
+}
+
+.header {
+  max-width: 40rem;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.title {
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.5rem;
+}
+
+.lead {
+  margin: 0;
+  opacity: 0.82;
+  line-height: 1.55;
+  font-size: 0.95rem;
+}
+
+.stage {
+  width: min(100%, 720px);
+  display: grid;
+  gap: 1.5rem;
+}
+
+.avatarSlot {
+  border-radius: 1rem;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--text) 12%, transparent);
+  background: color-mix(in srgb, var(--text) 4%, transparent);
+  min-height: 200px;
+}
+
+.panel {
+  border-radius: 1rem;
+  padding: 1.25rem;
+  border: 1px solid color-mix(in srgb, var(--text) 12%, transparent);
+  background: color-mix(in srgb, var(--text) 5%, transparent);
+}
+
+.transcript {
+  min-height: 3rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  opacity: 0.9;
+  margin-bottom: 1rem;
+  font-style: italic;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.mic {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.2rem;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  background: color-mix(in srgb, var(--accent, #5c7cfa) 90%, #fff);
+  color: #0c0f14;
+}
+
+.mic:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.micActive {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent, #5c7cfa) 45%, transparent);
+}
+
+.hint {
+  font-size: 0.8rem;
+  opacity: 0.65;
+}
+
+.error {
+  color: #f6a094;
+  font-size: 0.88rem;
+  margin-top: 0.75rem;
+}
+
+.log {
+  margin-top: 1.25rem;
+  max-height: 200px;
+  overflow: auto;
+  font-size: 0.8rem;
+  opacity: 0.75;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.msgUser {
+  color: color-mix(in srgb, var(--accent, #8b9fe8) 75%, #fff);
+}
+
+.msgAssistant {
+  color: color-mix(in srgb, var(--text) 88%, #888);
+}
+
+.back {
+  margin-top: 2rem;
+  font-size: 0.88rem;
+  opacity: 0.7;
+}
+
+.back a {
+  color: inherit;
+}

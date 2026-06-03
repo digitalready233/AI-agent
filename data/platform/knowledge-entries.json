@@ -1,0 +1,57 @@
+[
+  {
+    "id": "ke-001",
+    "knowledge_base_id": "kb-main-001",
+    "organization_id": "org-drg-001",
+    "title": "Company Profile",
+    "category": "Company Profile",
+    "content": "Digital Ready Ghana helps businesses grow through social media management, web development, digital advertising, branding, content creation, motion graphics, SEO, and marketing consultation.",
+    "status": "active",
+    "created_at": "2026-05-18T12:42:50.607Z",
+    "updated_at": "2026-05-18T12:42:50.607Z"
+  },
+  {
+    "id": "ke-002",
+    "knowledge_base_id": "kb-main-001",
+    "organization_id": "org-drg-001",
+    "title": "Social Media Management",
+    "category": "Services",
+    "content": "Packages include content planning, posting, community management, and monthly analytics. Custom quotes based on platforms and posting frequency.",
+    "status": "active",
+    "created_at": "2026-05-18T12:42:50.607Z",
+    "updated_at": "2026-05-18T12:42:50.607Z"
+  },
+  {
+    "id": "ke-003",
+    "knowledge_base_id": "kb-main-001",
+    "organization_id": "org-drg-001",
+    "title": "Website Development",
+    "category": "Services",
+    "content": "Business websites, e-commerce, landing pages. Timeline typically 2–8 weeks depending on scope.",
+    "status": "active",
+    "created_at": "2026-05-18T12:42:50.607Z",
+    "updated_at": "2026-05-18T12:42:50.607Z"
+  },
+  {
+    "id": "ke-004",
+    "knowledge_base_id": "kb-main-001",
+    "organization_id": "org-drg-001",
+    "title": "Pricing FAQ",
+    "category": "Pricing",
+    "content": "All pricing is customized after discovery. We do not publish fixed rates online. Book a free consultation for a tailored quote.",
+    "status": "active",
+    "created_at": "2026-05-18T12:42:50.607Z",
+    "updated_at": "2026-05-18T12:42:50.607Z"
+  },
+  {
+    "id": "ke-005",
+    "knowledge_base_id": "kb-main-001",
+    "organization_id": "org-drg-001",
+    "title": "Objection: Too expensive",
+    "category": "Objection Handling",
+    "content": "Emphasize ROI, phased delivery, and measurable outcomes. Offer starter packages and a discovery call.",
+    "status": "active",
+    "created_at": "2026-05-18T12:42:50.607Z",
+    "updated_at": "2026-05-18T12:42:50.607Z"
+  }
+]

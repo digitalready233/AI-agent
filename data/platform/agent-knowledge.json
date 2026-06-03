@@ -1,0 +1,20 @@
+[
+  {
+    "id": "akb-1",
+    "agent_id": "agent-sales-001",
+    "knowledge_base_id": "kb-main-001",
+    "created_at": "2026-05-18T12:42:50.607Z"
+  },
+  {
+    "id": "akb-2",
+    "agent_id": "agent-support-001",
+    "knowledge_base_id": "kb-main-001",
+    "created_at": "2026-05-18T12:42:50.607Z"
+  },
+  {
+    "id": "fad1f17c-61b5-470c-936c-20715196dc6c",
+    "agent_id": "1449cfa8-53e1-4bc9-911a-a9d646167eaa",
+    "knowledge_base_id": "323ca977-687a-4539-ab20-8f8c415f27df",
+    "created_at": "2026-06-02T12:51:55.899Z"
+  }
+]

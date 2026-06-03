@@ -1,0 +1,50 @@
+[
+  {
+    "id": "task-001",
+    "organization_id": "org-drg-001",
+    "agent_id": "agent-sales-001",
+    "name": "Hot Lead Slack Alert",
+    "trigger_type": "lead_hot",
+    "action_type": "notify_team",
+    "webhook_url": "",
+    "http_method": "POST",
+    "status": "active",
+    "created_at": "2026-05-18T12:42:50.607Z",
+    "updated_at": "2026-05-18T12:42:50.607Z"
+  },
+  {
+    "id": "task-002",
+    "organization_id": "org-drg-001",
+    "agent_id": "agent-sales-001",
+    "name": "CRM on Qualified Lead",
+    "trigger_type": "lead_qualified",
+    "action_type": "create_crm_record",
+    "status": "active",
+    "created_at": "2026-05-18T12:42:50.607Z",
+    "updated_at": "2026-05-18T12:42:50.607Z"
+  },
+  {
+    "id": "task-003",
+    "organization_id": "org-drg-001",
+    "agent_id": "agent-support-001",
+    "name": "Human Handoff Email",
+    "trigger_type": "human_requested",
+    "action_type": "send_email",
+    "status": "active",
+    "created_at": "2026-05-18T12:42:50.607Z",
+    "updated_at": "2026-05-18T12:42:50.607Z"
+  },
+  {
+    "id": "task-004",
+    "organization_id": "org-drg-001",
+    "agent_id": "agent-booking-001",
+    "name": "Meeting Booked Webhook",
+    "trigger_type": "meeting_booked",
+    "action_type": "send_webhook",
+    "webhook_url": "https://hooks.example.com/meeting",
+    "http_method": "POST",
+    "status": "active",
+    "created_at": "2026-05-18T12:42:50.607Z",
+    "updated_at": "2026-05-18T12:42:50.607Z"
+  }
+]
