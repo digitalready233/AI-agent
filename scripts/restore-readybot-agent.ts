@@ -12,7 +12,7 @@
 import { readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { randomUUID } from "node:crypto";
-import { createClient } from "@supabase/supabase-js";
+import { createAdminClient } from "../lib/supabase/admin";
 import { readybotPlaybookForAgent } from "../lib/platform/playbooks/digital-ready-readybot";
 import { buildReadybotKnowledgeEntries } from "../lib/platform/seed/readybot-knowledge";
 
@@ -42,8 +42,6 @@ function loadEnvLocal() {
 async function main() {
   loadEnvLocal();
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
   const preserveEmail = (
     process.env.PLATFORM_PRESERVE_EMAIL ?? "digitalready233@gmail.com"
   )
@@ -53,14 +51,13 @@ async function main() {
     process.env.NEXT_PUBLIC_PLATFORM_AGENT_ID?.trim() || DEFAULT_AGENT_ID;
   const kbId = process.env.RESTORE_KB_ID?.trim() || DEFAULT_KB_ID;
 
-  if (!url || !serviceKey) {
-    console.error("Missing Supabase URL or service role key.");
+  let admin;
+  try {
+    admin = createAdminClient();
+  } catch {
+    console.error("Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY.");
     process.exit(1);
   }
-
-  const admin = createClient(url, serviceKey, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
 
   const { data: userList } = await admin.auth.admin.listUsers();
   const preserveUser = userList?.users.find(

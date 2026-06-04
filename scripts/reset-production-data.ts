@@ -15,7 +15,8 @@
 
 import { readFileSync, existsSync, readdirSync, unlinkSync } from "node:fs";
 import { resolve, join } from "node:path";
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { createAdminClient } from "../lib/supabase/admin";
 
 function loadEnvLocal() {
   const path = resolve(process.cwd(), ".env.local");
@@ -130,22 +131,19 @@ async function main() {
   const confirmed =
     process.env.CONFIRM_RESET === "true" || process.argv.includes("--confirm");
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
   const preserveEmail = (
     process.env.PLATFORM_PRESERVE_EMAIL ?? "digitalready233@gmail.com"
   )
     .trim()
     .toLowerCase();
 
-  if (!url || !serviceKey) {
+  let admin;
+  try {
+    admin = createAdminClient();
+  } catch {
     console.error("Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY.");
     process.exit(1);
   }
-
-  const admin = createClient(url, serviceKey, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
 
   const { data: userList, error: listErr } = await admin.auth.admin.listUsers();
   if (listErr) {

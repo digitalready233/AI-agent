@@ -15,7 +15,7 @@
 
 import { readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
-import { createClient } from "@supabase/supabase-js";
+import { createAdminClient } from "../lib/supabase/admin";
 import { PLATFORM_BILLING_ACTIVE } from "../lib/billing/exempt";
 import { defaultOrganizationSettings } from "../lib/platform/settings-defaults";
 
@@ -42,8 +42,6 @@ function loadEnvLocal() {
 async function main() {
   loadEnvLocal();
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
   const email = process.env.PLATFORM_BOOTSTRAP_EMAIL?.trim();
   const password = process.env.PLATFORM_BOOTSTRAP_PASSWORD;
   const fullName =
@@ -51,10 +49,6 @@ async function main() {
   const orgName =
     process.env.PLATFORM_BOOTSTRAP_ORG_NAME?.trim() || "Digital Ready Ltd";
 
-  if (!url || !serviceKey) {
-    console.error("Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY.");
-    process.exit(1);
-  }
   if (!email || !password) {
     console.error(
       "Set PLATFORM_BOOTSTRAP_EMAIL and PLATFORM_BOOTSTRAP_PASSWORD (shell env, not in git)."
@@ -62,9 +56,13 @@ async function main() {
     process.exit(1);
   }
 
-  const admin = createClient(url, serviceKey, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
+  let admin;
+  try {
+    admin = createAdminClient();
+  } catch {
+    console.error("Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY.");
+    process.exit(1);
+  }
 
   let userId: string;
 
