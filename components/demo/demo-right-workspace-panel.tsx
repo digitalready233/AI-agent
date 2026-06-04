@@ -10,6 +10,8 @@ export function DemoRightWorkspacePanel({
   aiPaused,
   detectedIntent,
   customerSentiment,
+  objections,
+  suggestedNextAction,
   conversationPanel,
   transcriptLines,
 }: {
@@ -19,6 +21,8 @@ export function DemoRightWorkspacePanel({
   aiPaused?: boolean;
   detectedIntent?: string | null;
   customerSentiment?: string | null;
+  objections?: string[];
+  suggestedNextAction?: string | null;
   conversationPanel: React.ReactNode;
   transcriptLines: { speaker: string; content: string; input_type?: string }[];
 }) {
@@ -42,6 +46,8 @@ export function DemoRightWorkspacePanel({
           aiPaused={aiPaused}
           detectedIntent={detectedIntent}
           customerSentiment={customerSentiment}
+          objections={objections}
+          suggestedNextAction={suggestedNextAction}
         />
       </div>
 

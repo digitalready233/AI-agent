@@ -29,6 +29,7 @@ import { useDemoLivekitAi } from "@/hooks/use-demo-livekit-ai";
 import { DemoLiveKitStage } from "@/components/demo/demo-livekit-stage";
 import { DemoCenterStage } from "@/components/demo/demo-center-stage";
 import { DemoAiPresenter } from "@/components/demo/demo-ai-presenter";
+import { DemoPresenterStatusChip } from "@/components/demo/demo-presenter-status-chip";
 import { DemoAvatarPanel } from "@/components/demo/demo-avatar-panel";
 import {
   DidAvatarPresenter,
@@ -1064,6 +1065,12 @@ export function DemoRoomClient({ sessionId }: { sessionId: string }) {
       session?.avatar_status === "fallback_active" ||
       session?.avatar_status === "failed");
 
+  const presenterInCenterStage =
+    joined &&
+    !endedSummary &&
+    (useLiveKitVideo || showInternalPresenter) &&
+    (showInternalPresenter || showExternalAvatar);
+
   const activeAvatarProvider =
     session?.avatar_provider ?? agent?.avatar_provider ?? null;
   const isDidAvatar =
@@ -1079,7 +1086,11 @@ export function DemoRoomClient({ sessionId }: { sessionId: string }) {
           demoSessionId={sessionId}
           displayName={presenterDisplay.displayName}
           status={session?.avatar_status}
-          compact={screenShareActive || presenterSettings.compact_mode}
+          compact={
+            screenShareActive ||
+            presenterSettings.compact_mode ||
+            presenterInCenterStage
+          }
           staffView={staffMode}
           onConnected={() => {
             setSession((prev) =>
@@ -1106,7 +1117,11 @@ export function DemoRoomClient({ sessionId }: { sessionId: string }) {
           conversationUrl={session?.tavus_conversation_url}
           error={session?.avatar_error}
           displayName={presenterDisplay.displayName}
-          compact={screenShareActive || presenterSettings.compact_mode}
+          compact={
+            screenShareActive ||
+            presenterSettings.compact_mode ||
+            presenterInCenterStage
+          }
           staffView={staffMode}
         />
       )
@@ -1135,14 +1150,28 @@ export function DemoRoomClient({ sessionId }: { sessionId: string }) {
         showDemoPath={presenterSettings.show_demo_path}
         showBookingBadge={presenterSettings.show_booking_badge}
         showHandoffBadge={presenterSettings.show_handoff_badge}
-        compact={screenShareActive || presenterSettings.compact_mode}
+        compact={
+          screenShareActive ||
+          presenterSettings.compact_mode ||
+          presenterInCenterStage
+        }
         staffView={staffMode}
-        leadScore={staffMode ? session?.lead_score : undefined}
-        leadCategory={staffMode ? session?.lead_category : undefined}
+        leadScore={session?.lead_score}
+        leadCategory={session?.lead_category}
       />
     ) : null;
 
   const presenterNode = showExternalAvatar ? externalAvatarNode : aiPresenterNode;
+
+  const presenterStatusChip =
+    presenterInCenterStage && presenterDisplay ? (
+      <DemoPresenterStatusChip
+        displayName={presenterDisplay.displayName}
+        state={aiPresenterState}
+        bookingRecommended={session?.booking_recommended}
+        handoffRequired={session?.handoff_required}
+      />
+    ) : undefined;
 
   const presenterNote = useMemo(() => {
     if (session?.recommended_next_action?.trim()) {
@@ -1548,6 +1577,8 @@ export function DemoRoomClient({ sessionId }: { sessionId: string }) {
   const leftPanel = (
     <DemoLeftWorkspacePanel
       presenterNode={presenterNode}
+      presenterStatusChip={presenterStatusChip}
+      hidePrimaryPresenter={presenterInCenterStage}
       staffPresenterActive={session?.current_presenter_type === "staff"}
       staffPresenterName={
         session?.presenter_name ?? session?.active_staff_name ?? "Team member"
@@ -1756,9 +1787,7 @@ export function DemoRoomClient({ sessionId }: { sessionId: string }) {
                   aiPaused={livekitAi.aiPaused || aiPaused}
                   aiStatus={livekitAi.aiStatus}
                   aiPresenterSlot={
-                    screenShareActive && (showInternalPresenter || showExternalAvatar)
-                      ? presenterNode
-                      : undefined
+                    presenterInCenterStage && useLiveKitVideo ? presenterNode : undefined
                   }
                   recordingControls={
                     staffMode ? (
@@ -1790,7 +1819,10 @@ export function DemoRoomClient({ sessionId }: { sessionId: string }) {
                 screenShareActive={screenShareActive}
                 currentDemoStage={session?.current_demo_stage}
                 floatingPresenter={
-                  screenShareActive && (showInternalPresenter || showExternalAvatar)
+                  screenShareActive && presenterInCenterStage ? presenterNode : undefined
+                }
+                slideOverlayPresenter={
+                  !useLiveKitVideo && presenterInCenterStage && !screenShareActive
                     ? presenterNode
                     : undefined
                 }
@@ -1867,6 +1899,8 @@ export function DemoRoomClient({ sessionId }: { sessionId: string }) {
                 aiPaused={aiPaused || livekitAi.aiPaused}
                 detectedIntent={detectedIntentLabel}
                 customerSentiment={customerSentimentLabel}
+                objections={session?.objections}
+                suggestedNextAction={session?.recommended_next_action}
                 transcriptLines={
                   transcriptLines.length
                     ? transcriptLines
@@ -1902,7 +1936,10 @@ export function DemoRoomClient({ sessionId }: { sessionId: string }) {
                       retryable={retryable}
                       onRetry={retryLastMessage}
                       bottomRef={bottomRef}
-                      showStateBadges={false}
+                      showStateBadges
+                      objections={session?.objections}
+                      suggestedNextAction={session?.recommended_next_action}
+                      staffIntelligenceView={staffMode || joined}
                       staffControls={
                         !endedSummary && staffMode ? (
                           <div className="space-y-3">

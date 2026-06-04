@@ -1,7 +1,7 @@
 "use client";
 
 import { RefObject } from "react";
-import { Bot, HandHelping, Loader2, Mic, Send } from "lucide-react";
+import { Bot, HandHelping, Loader2, Mic, Send, Sparkles, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -46,6 +46,9 @@ export function DemoConversationPanel({
   voicePanel,
   staffControls,
   showStateBadges = true,
+  objections,
+  suggestedNextAction,
+  staffIntelligenceView,
 }: {
   lines: ConversationLine[];
   sending?: boolean;
@@ -73,6 +76,10 @@ export function DemoConversationPanel({
   voicePanel?: React.ReactNode;
   staffControls?: React.ReactNode;
   showStateBadges?: boolean;
+  objections?: string[];
+  suggestedNextAction?: string | null;
+  /** Show intent, objections, and recommended action (staff or full demo room). */
+  staffIntelligenceView?: boolean;
 }) {
   const stateLabels = aiPresenterState
     ? presenterStateLabel(aiPresenterState)
@@ -99,25 +106,54 @@ export function DemoConversationPanel({
           </p>
         </div>
         {showStateBadges && (
-          <div className="flex flex-wrap gap-2">
-            <Badge
-              variant="outline"
-              className="text-xs border-cyan-500/30 text-cyan-200 capitalize"
-            >
-              AI: {stateLabels.title}
-            </Badge>
-            <Badge variant="outline" className="text-[10px] text-slate-400">
-              Voice: {voiceLabel}
-            </Badge>
-            {detectedIntent && (
-              <Badge variant="outline" className="text-[10px] border-violet-500/30 text-violet-200">
-                Intent: {detectedIntent}
+          <div className="space-y-2">
+            <div className="flex flex-wrap gap-2">
+              <Badge
+                variant="outline"
+                className="text-xs border-cyan-500/30 text-cyan-200 capitalize gap-1"
+              >
+                {aiPaused ? (
+                  <HandHelping className="h-3 w-3" />
+                ) : voiceStatus === "listening" ? (
+                  <Mic className="h-3 w-3 animate-pulse" />
+                ) : sending || aiPresenterState === "thinking" ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : aiPresenterState === "speaking" ? (
+                  <Bot className="h-3 w-3" />
+                ) : null}
+                AI: {aiPaused ? "Paused" : stateLabels.title}
               </Badge>
-            )}
-            {customerSentiment && (
-              <Badge variant="outline" className="text-[10px] border-emerald-500/30 text-emerald-200">
-                Sentiment: {customerSentiment}
+              <Badge variant="outline" className="text-[10px] text-slate-400">
+                Voice: {voiceLabel}
               </Badge>
+              {detectedIntent && staffIntelligenceView && (
+                <Badge variant="outline" className="text-[10px] border-violet-500/30 text-violet-200">
+                  Intent: {detectedIntent}
+                </Badge>
+              )}
+              {customerSentiment && (
+                <Badge variant="outline" className="text-[10px] border-emerald-500/30 text-emerald-200">
+                  Sentiment: {customerSentiment}
+                </Badge>
+              )}
+              {(objections?.length ?? 0) > 0 && (
+                <Badge
+                  variant="outline"
+                  className="text-[10px] border-amber-500/40 text-amber-200 gap-1"
+                >
+                  <AlertTriangle className="h-3 w-3" />
+                  {objections!.length} objection{objections!.length === 1 ? "" : "s"}
+                </Badge>
+              )}
+            </div>
+            {suggestedNextAction && (
+              <p className="text-xs text-slate-300 leading-relaxed flex gap-2 rounded-lg border border-cyan-500/20 bg-cyan-950/20 px-2.5 py-2">
+                <Sparkles className="h-3.5 w-3.5 shrink-0 text-cyan-400/90 mt-0.5" />
+                <span>
+                  <span className="text-cyan-400/90 font-medium">Next: </span>
+                  {suggestedNextAction}
+                </span>
+              </p>
             )}
           </div>
         )}

@@ -42,6 +42,8 @@ type Props = {
   onNextAsset?: () => void;
   presenterNote?: string | null;
   floatingPresenter?: React.ReactNode;
+  /** Primary presenter overlay on the slide card (non–screen-share). */
+  slideOverlayPresenter?: React.ReactNode;
   children?: React.ReactNode;
 };
 
@@ -64,6 +66,7 @@ export function DemoCenterStage({
   onNextAsset,
   presenterNote,
   floatingPresenter,
+  slideOverlayPresenter,
   children,
 }: Props) {
   const remoteScreen =
@@ -113,7 +116,7 @@ export function DemoCenterStage({
       )}
 
       {!showScreenStage && (
-        <Card className="border-slate-800/80 bg-slate-900/40 min-h-[400px] shadow-lg shadow-black/20 overflow-hidden">
+        <Card className="border-slate-800/80 bg-slate-900/40 min-h-[400px] shadow-lg shadow-black/20 overflow-hidden relative">
           <div className="border-b border-slate-800/60 bg-slate-950/40 px-4 py-3 space-y-2">
             {hasPath ? (
               <div className="grid gap-2 sm:grid-cols-2 text-xs">
@@ -307,6 +310,11 @@ export function DemoCenterStage({
               </div>
             )}
           </CardContent>
+          {slideOverlayPresenter && (
+            <div className="absolute bottom-3 right-3 z-10 w-[min(100%,260px)] max-w-[85vw] pointer-events-none">
+              <div className="pointer-events-auto">{slideOverlayPresenter}</div>
+            </div>
+          )}
         </Card>
       )}
 

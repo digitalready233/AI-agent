@@ -22,6 +22,8 @@ type LeadFields = {
 
 export function DemoLeftWorkspacePanel({
   presenterNode,
+  presenterStatusChip,
+  hidePrimaryPresenter,
   staffPresenterActive,
   staffPresenterName,
   joined,
@@ -45,6 +47,9 @@ export function DemoLeftWorkspacePanel({
   fallbackAgentCard,
 }: {
   presenterNode: React.ReactNode;
+  /** Compact status when the full presenter tile lives in the center stage. */
+  presenterStatusChip?: React.ReactNode;
+  hidePrimaryPresenter?: boolean;
   staffPresenterActive?: boolean;
   staffPresenterName?: string | null;
   joined?: boolean;
@@ -69,7 +74,11 @@ export function DemoLeftWorkspacePanel({
 }) {
   return (
     <div className="space-y-4">
-      <PanelSection label="AI presenter">{presenterNode}</PanelSection>
+      {(presenterStatusChip || (!hidePrimaryPresenter && presenterNode)) && (
+        <PanelSection label="AI presenter">
+          {presenterStatusChip ?? presenterNode}
+        </PanelSection>
+      )}
 
       {staffPresenterActive && (
         <Card className="border-violet-500/40 bg-violet-950/25">

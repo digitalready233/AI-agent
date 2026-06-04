@@ -3,6 +3,7 @@
 import { cn } from "@/lib/utils";
 import {
   DEMO_STAGE_PROGRESS,
+  demoProgressPercent,
   formatDemoStageLabel,
   resolveProgressStageIndex,
 } from "@/lib/demo/demo-room-ui";
@@ -16,6 +17,7 @@ export function DemoStageProgress({
 }) {
   const activeIdx = resolveProgressStageIndex(currentStage);
   const currentLabel = formatDemoStageLabel(currentStage);
+  const progressPct = demoProgressPercent(currentStage);
 
   return (
     <div
@@ -24,11 +26,25 @@ export function DemoStageProgress({
         className
       )}
     >
-      <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-          Demo stage
-        </p>
-        <span className="text-xs font-medium text-cyan-300/90">{currentLabel}</span>
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+            Sales workflow
+          </p>
+          <p className="text-[10px] text-slate-600 mt-0.5">
+            Need discovery → path → presentation → booking → handoff
+          </p>
+        </div>
+        <div className="text-right">
+          <span className="text-xs font-medium text-cyan-300/90 block">{currentLabel}</span>
+          <span className="text-[10px] text-slate-500 tabular-nums">{progressPct}% journey</span>
+        </div>
+      </div>
+      <div className="h-1 rounded-full bg-slate-800 overflow-hidden mb-3">
+        <div
+          className="h-full bg-gradient-to-r from-cyan-600/90 to-violet-500/80 transition-all duration-500"
+          style={{ width: `${progressPct}%` }}
+        />
       </div>
       <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-thin">
         {DEMO_STAGE_PROGRESS.map((stage, i) => {

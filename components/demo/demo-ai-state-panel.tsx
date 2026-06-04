@@ -13,6 +13,8 @@ export function DemoAiStatePanel({
   aiPaused,
   detectedIntent,
   customerSentiment,
+  objections,
+  suggestedNextAction,
   embedded,
 }: {
   aiState?: AiPresenterState;
@@ -20,6 +22,8 @@ export function DemoAiStatePanel({
   aiPaused?: boolean;
   detectedIntent?: string | null;
   customerSentiment?: string | null;
+  objections?: string[];
+  suggestedNextAction?: string | null;
   embedded?: boolean;
 }) {
   const labels = aiState
@@ -80,7 +84,18 @@ export function DemoAiStatePanel({
               Sentiment: {customerSentiment}
             </Badge>
           )}
+          {(objections?.length ?? 0) > 0 && (
+            <Badge variant="outline" className="text-[10px] border-amber-500/40 text-amber-200">
+              Objections: {objections!.length}
+            </Badge>
+          )}
         </div>
+        {suggestedNextAction && (
+          <p className="text-xs text-slate-400 leading-relaxed border-t border-slate-800/60 pt-2">
+            <span className="text-cyan-400/90">Suggested: </span>
+            {suggestedNextAction}
+          </p>
+        )}
     </>
   );
 
