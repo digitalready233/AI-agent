@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Outfit, Syne } from "next/font/google";
 import { Toaster } from "sonner";
 import { CookieConsentBanner } from "@/components/cookie-consent-banner";
+import { NavigationProgressRoot } from "@/components/platform/navigation-progress-root";
 import { OrganizationJsonLd } from "@/components/seo/organization-json-ld";
 import { rootMetadata } from "@/lib/seo/site";
 import "./globals.css";
@@ -41,6 +42,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${outfit.variable} ${syne.variable}`}>
       <body className={outfit.className}>
+        <NavigationProgressRoot />
         <OrganizationJsonLd />
         {children}
         <CookieConsentBanner />

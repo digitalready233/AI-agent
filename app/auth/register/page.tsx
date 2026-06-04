@@ -1,3 +1,4 @@
+import { AuthFormSkeleton } from "@/components/platform/page-skeletons";
 import { RegisterForm } from "@/components/platform/auth/register-form";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -13,9 +14,7 @@ export default function RegisterPage() {
           Start building your AI sales workspace in minutes.
         </p>
       </div>
-      <Suspense
-        fallback={<div className="platform-card h-96 animate-pulse rounded-2xl" aria-hidden />}
-      >
+      <Suspense fallback={<AuthFormSkeleton fields={3} />}>
         <RegisterForm />
       </Suspense>
       <p className="text-center text-sm text-slate-500 lg:text-left">

@@ -98,6 +98,8 @@ export async function runAgentWorkflow(
 
   const knowledgeContext = await getKnowledgeContextForAgent(agentId, organizationId, {
     strict: channel === "website" || channel === "embed",
+    userMessage: customerMessage,
+    workflowStage: conversation.conversation_stage ?? null,
   });
 
   let analysis;
@@ -152,6 +154,16 @@ export async function runAgentWorkflow(
   }
   const suggestBooking = bookingEligible && !handoffRequired;
 
+  let knowledgeForResponse = knowledgeContext;
+  if (readybot) {
+    knowledgeForResponse = await getKnowledgeContextForAgent(agentId, organizationId, {
+      strict: channel === "website" || channel === "embed",
+      userMessage: customerMessage,
+      workflowStage: analysis.conversation_stage,
+      readybotStep: inferReadybotPipelineStep(analysis.lead_extraction),
+    });
+  }
+
   const existingLeadForBooking = conversation.lead_id
     ? await getLead(conversation.lead_id)
     : null;
@@ -175,7 +187,7 @@ export async function runAgentWorkflow(
       ctx,
       customerMessage,
       history,
-      knowledgeContext,
+      knowledgeContext: knowledgeForResponse,
       analysis,
       handoffRequired,
       suggestBooking,

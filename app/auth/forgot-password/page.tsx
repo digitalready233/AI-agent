@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { isDemoAuthMode } from "@/lib/auth/demo-mode";
 import { isRecaptchaClientEnabled } from "@/lib/auth/recaptcha";
 import { useInvisibleRecaptcha } from "@/hooks/use-invisible-recaptcha";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function ForgotPasswordPage() {
@@ -104,7 +105,14 @@ export default function ForgotPasswordPage() {
               </p>
             )}
             <Button type="submit" className="h-11 w-full rounded-xl" disabled={loading}>
-              {loading ? "Sending…" : "Send reset link"}
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                  Sending…
+                </>
+              ) : (
+                "Send reset link"
+              )}
             </Button>
           </form>
         )}

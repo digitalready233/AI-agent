@@ -192,6 +192,78 @@ export function ReadybotKnowledgeSeedButton({
   );
 }
 
+export function ReadybotPlaybookImportButton({
+  knowledgeBaseId,
+  knowledgeBaseTitle,
+  variant = "outline",
+  size = "sm",
+  className,
+  disabled = false,
+}: SeedButtonProps) {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const noKb = !knowledgeBaseId;
+
+  async function runImport() {
+    if (!knowledgeBaseId) return;
+    setLoading(true);
+    try {
+      const res = await fetch("/api/platform/knowledge-bases/seed-readybot-playbook", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ knowledgeBaseId, overwrite: false }),
+      });
+      const data = (await res.json()) as {
+        error?: string;
+        created?: number;
+        skipped?: number;
+        totalPlaybookRows?: number;
+        linkedAgentId?: string | null;
+      };
+      if (!res.ok) throw new Error(data.error ?? "Import failed");
+      toast.success(`Imported ${data.created ?? 0} playbook scripts`, {
+        description: [
+          data.skipped ? `${data.skipped} already present (skipped).` : null,
+          data.totalPlaybookRows
+            ? `${data.totalPlaybookRows} rows in ReadyBot_Large_KB.json.`
+            : null,
+          data.linkedAgentId ? "Linked to live agent." : null,
+        ]
+          .filter(Boolean)
+          .join(" "),
+      });
+      router.refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not import playbook");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <Button
+      type="button"
+      variant={variant}
+      size={size}
+      className={cn(className)}
+      disabled={disabled || noKb || loading}
+      title={
+        noKb
+          ? "Create a knowledge base first"
+          : "Import 200 staged ReadyBot scripts from ReadyBot_Large_KB.json"
+      }
+      onClick={() => void runImport()}
+    >
+      {loading ? (
+        <Loader2 className="h-4 w-4 animate-spin" />
+      ) : (
+        <BookOpen className="h-4 w-4" />
+      )}
+      {loading ? "Importing…" : "Import large playbook"}
+    </Button>
+  );
+}
+
 export function ReadybotKnowledgeKitCard({
   defaultKnowledgeBaseId,
   knowledgeBaseTitle,
@@ -222,6 +294,12 @@ export function ReadybotKnowledgeKitCard({
             knowledgeBaseId={defaultKnowledgeBaseId}
             knowledgeBaseTitle={knowledgeBaseTitle}
             variant="default"
+            size="sm"
+          />
+          <ReadybotPlaybookImportButton
+            knowledgeBaseId={defaultKnowledgeBaseId}
+            knowledgeBaseTitle={knowledgeBaseTitle}
+            variant="outline"
             size="sm"
           />
           {playbookAgentHref ? (

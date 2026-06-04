@@ -1,0 +1,2482 @@
+[
+  {
+    "id": "social_media_goal_1",
+    "intent": "social_media_goal",
+    "stage": "Discovery",
+    "pillar": "Social",
+    "keywords": [
+      "followers",
+      "engagement",
+      "conversions"
+    ],
+    "response": "Are you focusing more on **followers**, **engagement**, or **conversions**?"
+  },
+  {
+    "id": "social_media_milestone_1",
+    "intent": "social_media_milestone",
+    "stage": "Discovery",
+    "pillar": "Social",
+    "keywords": [
+      "milestone",
+      "goal",
+      "6 months"
+    ],
+    "response": "What\u2019s your biggest **milestone** for this growth in the next 6 months?"
+  },
+  {
+    "id": "ads_stack_check_1",
+    "intent": "ads_stack_check",
+    "stage": "Stack",
+    "pillar": "Ads",
+    "keywords": [
+      "paid ads",
+      "ads",
+      "campaign"
+    ],
+    "response": "Running paid ads today, or starting fresh?"
+  },
+  {
+    "id": "social_stack_check_1",
+    "intent": "social_stack_check",
+    "stage": "Stack",
+    "pillar": "Social",
+    "keywords": [
+      "reach",
+      "conversion",
+      "social media"
+    ],
+    "response": "Is it more about reaching your audience or converting followers to sales?"
+  },
+  {
+    "id": "web_ops_stack_check_1",
+    "intent": "web_ops_stack_check",
+    "stage": "Stack",
+    "pillar": "Web/Ops",
+    "keywords": [
+      "analytics",
+      "CRM",
+      "web",
+      "automation"
+    ],
+    "response": "Do you have analytics/CRM in place, or do we build from scratch?"
+  },
+  {
+    "id": "team_model_1",
+    "intent": "team_model",
+    "stage": "Team",
+    "pillar": "All",
+    "keywords": [
+      "team",
+      "agency",
+      "support",
+      "internal"
+    ],
+    "response": "Will you handle part in-house + agency support, or do you want **full agency management**?"
+  },
+  {
+    "id": "budget_timing_1",
+    "intent": "budget_timing",
+    "stage": "Budget",
+    "pillar": "All",
+    "keywords": [
+      "budget",
+      "tier",
+      "start",
+      "timing"
+    ],
+    "response": "Available tiers: **A SME \u00b7 B Mid \u00b7 C Enterprise**. When would you like to start?"
+  },
+  {
+    "id": "close_info_1",
+    "intent": "close_info",
+    "stage": "Close",
+    "pillar": "All",
+    "keywords": [
+      "contact",
+      "email",
+      "phone",
+      "schedule"
+    ],
+    "response": "Got it \u2014 our lead strategist will prepare a custom proposal. Could you share your **email and phone** so we can schedule a consultation?"
+  },
+  {
+    "id": "objection_budget_1",
+    "intent": "objection_budget",
+    "stage": "Objection",
+    "pillar": "All",
+    "keywords": [
+      "budget",
+      "expensive",
+      "cost"
+    ],
+    "response": "I understand the **budget concern** \u2014 we provide a phased strategy to maximize ROI. Would you like to see the tier options that fit your goals?"
+  },
+  {
+    "id": "objection_timing_1",
+    "intent": "objection_timing",
+    "stage": "Objection",
+    "pillar": "All",
+    "keywords": [
+      "timing",
+      "schedule",
+      "start"
+    ],
+    "response": "Timing is important \u2014 we can phase the project to align with your schedule. When would you like to kick off?"
+  },
+  {
+    "id": "social_media_goal_2",
+    "intent": "social_media_goal",
+    "stage": "Discovery",
+    "pillar": "Social",
+    "keywords": [
+      "followers",
+      "engagement",
+      "conversions"
+    ],
+    "response": "Are you focusing more on **followers**, **engagement**, or **conversions**?"
+  },
+  {
+    "id": "social_media_milestone_2",
+    "intent": "social_media_milestone",
+    "stage": "Discovery",
+    "pillar": "Social",
+    "keywords": [
+      "milestone",
+      "goal",
+      "6 months"
+    ],
+    "response": "What\u2019s your biggest **milestone** for this growth in the next 6 months?"
+  },
+  {
+    "id": "ads_stack_check_2",
+    "intent": "ads_stack_check",
+    "stage": "Stack",
+    "pillar": "Ads",
+    "keywords": [
+      "paid ads",
+      "ads",
+      "campaign"
+    ],
+    "response": "Running paid ads today, or starting fresh?"
+  },
+  {
+    "id": "social_stack_check_2",
+    "intent": "social_stack_check",
+    "stage": "Stack",
+    "pillar": "Social",
+    "keywords": [
+      "reach",
+      "conversion",
+      "social media"
+    ],
+    "response": "Is it more about reaching your audience or converting followers to sales?"
+  },
+  {
+    "id": "web_ops_stack_check_2",
+    "intent": "web_ops_stack_check",
+    "stage": "Stack",
+    "pillar": "Web/Ops",
+    "keywords": [
+      "analytics",
+      "CRM",
+      "web",
+      "automation"
+    ],
+    "response": "Do you have analytics/CRM in place, or do we build from scratch?"
+  },
+  {
+    "id": "team_model_2",
+    "intent": "team_model",
+    "stage": "Team",
+    "pillar": "All",
+    "keywords": [
+      "team",
+      "agency",
+      "support",
+      "internal"
+    ],
+    "response": "Will you handle part in-house + agency support, or do you want **full agency management**?"
+  },
+  {
+    "id": "budget_timing_2",
+    "intent": "budget_timing",
+    "stage": "Budget",
+    "pillar": "All",
+    "keywords": [
+      "budget",
+      "tier",
+      "start",
+      "timing"
+    ],
+    "response": "Available tiers: **A SME \u00b7 B Mid \u00b7 C Enterprise**. When would you like to start?"
+  },
+  {
+    "id": "close_info_2",
+    "intent": "close_info",
+    "stage": "Close",
+    "pillar": "All",
+    "keywords": [
+      "contact",
+      "email",
+      "phone",
+      "schedule"
+    ],
+    "response": "Got it \u2014 our lead strategist will prepare a custom proposal. Could you share your **email and phone** so we can schedule a consultation?"
+  },
+  {
+    "id": "objection_budget_2",
+    "intent": "objection_budget",
+    "stage": "Objection",
+    "pillar": "All",
+    "keywords": [
+      "budget",
+      "expensive",
+      "cost"
+    ],
+    "response": "I understand the **budget concern** \u2014 we provide a phased strategy to maximize ROI. Would you like to see the tier options that fit your goals?"
+  },
+  {
+    "id": "objection_timing_2",
+    "intent": "objection_timing",
+    "stage": "Objection",
+    "pillar": "All",
+    "keywords": [
+      "timing",
+      "schedule",
+      "start"
+    ],
+    "response": "Timing is important \u2014 we can phase the project to align with your schedule. When would you like to kick off?"
+  },
+  {
+    "id": "social_media_goal_3",
+    "intent": "social_media_goal",
+    "stage": "Discovery",
+    "pillar": "Social",
+    "keywords": [
+      "followers",
+      "engagement",
+      "conversions"
+    ],
+    "response": "Are you focusing more on **followers**, **engagement**, or **conversions**?"
+  },
+  {
+    "id": "social_media_milestone_3",
+    "intent": "social_media_milestone",
+    "stage": "Discovery",
+    "pillar": "Social",
+    "keywords": [
+      "milestone",
+      "goal",
+      "6 months"
+    ],
+    "response": "What\u2019s your biggest **milestone** for this growth in the next 6 months?"
+  },
+  {
+    "id": "ads_stack_check_3",
+    "intent": "ads_stack_check",
+    "stage": "Stack",
+    "pillar": "Ads",
+    "keywords": [
+      "paid ads",
+      "ads",
+      "campaign"
+    ],
+    "response": "Running paid ads today, or starting fresh?"
+  },
+  {
+    "id": "social_stack_check_3",
+    "intent": "social_stack_check",
+    "stage": "Stack",
+    "pillar": "Social",
+    "keywords": [
+      "reach",
+      "conversion",
+      "social media"
+    ],
+    "response": "Is it more about reaching your audience or converting followers to sales?"
+  },
+  {
+    "id": "web_ops_stack_check_3",
+    "intent": "web_ops_stack_check",
+    "stage": "Stack",
+    "pillar": "Web/Ops",
+    "keywords": [
+      "analytics",
+      "CRM",
+      "web",
+      "automation"
+    ],
+    "response": "Do you have analytics/CRM in place, or do we build from scratch?"
+  },
+  {
+    "id": "team_model_3",
+    "intent": "team_model",
+    "stage": "Team",
+    "pillar": "All",
+    "keywords": [
+      "team",
+      "agency",
+      "support",
+      "internal"
+    ],
+    "response": "Will you handle part in-house + agency support, or do you want **full agency management**?"
+  },
+  {
+    "id": "budget_timing_3",
+    "intent": "budget_timing",
+    "stage": "Budget",
+    "pillar": "All",
+    "keywords": [
+      "budget",
+      "tier",
+      "start",
+      "timing"
+    ],
+    "response": "Available tiers: **A SME \u00b7 B Mid \u00b7 C Enterprise**. When would you like to start?"
+  },
+  {
+    "id": "close_info_3",
+    "intent": "close_info",
+    "stage": "Close",
+    "pillar": "All",
+    "keywords": [
+      "contact",
+      "email",
+      "phone",
+      "schedule"
+    ],
+    "response": "Got it \u2014 our lead strategist will prepare a custom proposal. Could you share your **email and phone** so we can schedule a consultation?"
+  },
+  {
+    "id": "objection_budget_3",
+    "intent": "objection_budget",
+    "stage": "Objection",
+    "pillar": "All",
+    "keywords": [
+      "budget",
+      "expensive",
+      "cost"
+    ],
+    "response": "I understand the **budget concern** \u2014 we provide a phased strategy to maximize ROI. Would you like to see the tier options that fit your goals?"
+  },
+  {
+    "id": "objection_timing_3",
+    "intent": "objection_timing",
+    "stage": "Objection",
+    "pillar": "All",
+    "keywords": [
+      "timing",
+      "schedule",
+      "start"
+    ],
+    "response": "Timing is important \u2014 we can phase the project to align with your schedule. When would you like to kick off?"
+  },
+  {
+    "id": "social_media_goal_4",
+    "intent": "social_media_goal",
+    "stage": "Discovery",
+    "pillar": "Social",
+    "keywords": [
+      "followers",
+      "engagement",
+      "conversions"
+    ],
+    "response": "Are you focusing more on **followers**, **engagement**, or **conversions**?"
+  },
+  {
+    "id": "social_media_milestone_4",
+    "intent": "social_media_milestone",
+    "stage": "Discovery",
+    "pillar": "Social",
+    "keywords": [
+      "milestone",
+      "goal",
+      "6 months"
+    ],
+    "response": "What\u2019s your biggest **milestone** for this growth in the next 6 months?"
+  },
+  {
+    "id": "ads_stack_check_4",
+    "intent": "ads_stack_check",
+    "stage": "Stack",
+    "pillar": "Ads",
+    "keywords": [
+      "paid ads",
+      "ads",
+      "campaign"
+    ],
+    "response": "Running paid ads today, or starting fresh?"
+  },
+  {
+    "id": "social_stack_check_4",
+    "intent": "social_stack_check",
+    "stage": "Stack",
+    "pillar": "Social",
+    "keywords": [
+      "reach",
+      "conversion",
+      "social media"
+    ],
+    "response": "Is it more about reaching your audience or converting followers to sales?"
+  },
+  {
+    "id": "web_ops_stack_check_4",
+    "intent": "web_ops_stack_check",
+    "stage": "Stack",
+    "pillar": "Web/Ops",
+    "keywords": [
+      "analytics",
+      "CRM",
+      "web",
+      "automation"
+    ],
+    "response": "Do you have analytics/CRM in place, or do we build from scratch?"
+  },
+  {
+    "id": "team_model_4",
+    "intent": "team_model",
+    "stage": "Team",
+    "pillar": "All",
+    "keywords": [
+      "team",
+      "agency",
+      "support",
+      "internal"
+    ],
+    "response": "Will you handle part in-house + agency support, or do you want **full agency management**?"
+  },
+  {
+    "id": "budget_timing_4",
+    "intent": "budget_timing",
+    "stage": "Budget",
+    "pillar": "All",
+    "keywords": [
+      "budget",
+      "tier",
+      "start",
+      "timing"
+    ],
+    "response": "Available tiers: **A SME \u00b7 B Mid \u00b7 C Enterprise**. When would you like to start?"
+  },
+  {
+    "id": "close_info_4",
+    "intent": "close_info",
+    "stage": "Close",
+    "pillar": "All",
+    "keywords": [
+      "contact",
+      "email",
+      "phone",
+      "schedule"
+    ],
+    "response": "Got it \u2014 our lead strategist will prepare a custom proposal. Could you share your **email and phone** so we can schedule a consultation?"
+  },
+  {
+    "id": "objection_budget_4",
+    "intent": "objection_budget",
+    "stage": "Objection",
+    "pillar": "All",
+    "keywords": [
+      "budget",
+      "expensive",
+      "cost"
+    ],
+    "response": "I understand the **budget concern** \u2014 we provide a phased strategy to maximize ROI. Would you like to see the tier options that fit your goals?"
+  },
+  {
+    "id": "objection_timing_4",
+    "intent": "objection_timing",
+    "stage": "Objection",
+    "pillar": "All",
+    "keywords": [
+      "timing",
+      "schedule",
+      "start"
+    ],
+    "response": "Timing is important \u2014 we can phase the project to align with your schedule. When would you like to kick off?"
+  },
+  {
+    "id": "social_media_goal_5",
+    "intent": "social_media_goal",
+    "stage": "Discovery",
+    "pillar": "Social",
+    "keywords": [
+      "followers",
+      "engagement",
+      "conversions"
+    ],
+    "response": "Are you focusing more on **followers**, **engagement**, or **conversions**?"
+  },
+  {
+    "id": "social_media_milestone_5",
+    "intent": "social_media_milestone",
+    "stage": "Discovery",
+    "pillar": "Social",
+    "keywords": [
+      "milestone",
+      "goal",
+      "6 months"
+    ],
+    "response": "What\u2019s your biggest **milestone** for this growth in the next 6 months?"
+  },
+  {
+    "id": "ads_stack_check_5",
+    "intent": "ads_stack_check",
+    "stage": "Stack",
+    "pillar": "Ads",
+    "keywords": [
+      "paid ads",
+      "ads",
+      "campaign"
+    ],
+    "response": "Running paid ads today, or starting fresh?"
+  },
+  {
+    "id": "social_stack_check_5",
+    "intent": "social_stack_check",
+    "stage": "Stack",
+    "pillar": "Social",
+    "keywords": [
+      "reach",
+      "conversion",
+      "social media"
+    ],
+    "response": "Is it more about reaching your audience or converting followers to sales?"
+  },
+  {
+    "id": "web_ops_stack_check_5",
+    "intent": "web_ops_stack_check",
+    "stage": "Stack",
+    "pillar": "Web/Ops",
+    "keywords": [
+      "analytics",
+      "CRM",
+      "web",
+      "automation"
+    ],
+    "response": "Do you have analytics/CRM in place, or do we build from scratch?"
+  },
+  {
+    "id": "team_model_5",
+    "intent": "team_model",
+    "stage": "Team",
+    "pillar": "All",
+    "keywords": [
+      "team",
+      "agency",
+      "support",
+      "internal"
+    ],
+    "response": "Will you handle part in-house + agency support, or do you want **full agency management**?"
+  },
+  {
+    "id": "budget_timing_5",
+    "intent": "budget_timing",
+    "stage": "Budget",
+    "pillar": "All",
+    "keywords": [
+      "budget",
+      "tier",
+      "start",
+      "timing"
+    ],
+    "response": "Available tiers: **A SME \u00b7 B Mid \u00b7 C Enterprise**. When would you like to start?"
+  },
+  {
+    "id": "close_info_5",
+    "intent": "close_info",
+    "stage": "Close",
+    "pillar": "All",
+    "keywords": [
+      "contact",
+      "email",
+      "phone",
+      "schedule"
+    ],
+    "response": "Got it \u2014 our lead strategist will prepare a custom proposal. Could you share your **email and phone** so we can schedule a consultation?"
+  },
+  {
+    "id": "objection_budget_5",
+    "intent": "objection_budget",
+    "stage": "Objection",
+    "pillar": "All",
+    "keywords": [
+      "budget",
+      "expensive",
+      "cost"
+    ],
+    "response": "I understand the **budget concern** \u2014 we provide a phased strategy to maximize ROI. Would you like to see the tier options that fit your goals?"
+  },
+  {
+    "id": "objection_timing_5",
+    "intent": "objection_timing",
+    "stage": "Objection",
+    "pillar": "All",
+    "keywords": [
+      "timing",
+      "schedule",
+      "start"
+    ],
+    "response": "Timing is important \u2014 we can phase the project to align with your schedule. When would you like to kick off?"
+  },
+  {
+    "id": "social_media_goal_6",
+    "intent": "social_media_goal",
+    "stage": "Discovery",
+    "pillar": "Social",
+    "keywords": [
+      "followers",
+      "engagement",
+      "conversions"
+    ],
+    "response": "Are you focusing more on **followers**, **engagement**, or **conversions**?"
+  },
+  {
+    "id": "social_media_milestone_6",
+    "intent": "social_media_milestone",
+    "stage": "Discovery",
+    "pillar": "Social",
+    "keywords": [
+      "milestone",
+      "goal",
+      "6 months"
+    ],
+    "response": "What\u2019s your biggest **milestone** for this growth in the next 6 months?"
+  },
+  {
+    "id": "ads_stack_check_6",
+    "intent": "ads_stack_check",
+    "stage": "Stack",
+    "pillar": "Ads",
+    "keywords": [
+      "paid ads",
+      "ads",
+      "campaign"
+    ],
+    "response": "Running paid ads today, or starting fresh?"
+  },
+  {
+    "id": "social_stack_check_6",
+    "intent": "social_stack_check",
+    "stage": "Stack",
+    "pillar": "Social",
+    "keywords": [
+      "reach",
+      "conversion",
+      "social media"
+    ],
+    "response": "Is it more about reaching your audience or converting followers to sales?"
+  },
+  {
+    "id": "web_ops_stack_check_6",
+    "intent": "web_ops_stack_check",
+    "stage": "Stack",
+    "pillar": "Web/Ops",
+    "keywords": [
+      "analytics",
+      "CRM",
+      "web",
+      "automation"
+    ],
+    "response": "Do you have analytics/CRM in place, or do we build from scratch?"
+  },
+  {
+    "id": "team_model_6",
+    "intent": "team_model",
+    "stage": "Team",
+    "pillar": "All",
+    "keywords": [
+      "team",
+      "agency",
+      "support",
+      "internal"
+    ],
+    "response": "Will you handle part in-house + agency support, or do you want **full agency management**?"
+  },
+  {
+    "id": "budget_timing_6",
+    "intent": "budget_timing",
+    "stage": "Budget",
+    "pillar": "All",
+    "keywords": [
+      "budget",
+      "tier",
+      "start",
+      "timing"
+    ],
+    "response": "Available tiers: **A SME \u00b7 B Mid \u00b7 C Enterprise**. When would you like to start?"
+  },
+  {
+    "id": "close_info_6",
+    "intent": "close_info",
+    "stage": "Close",
+    "pillar": "All",
+    "keywords": [
+      "contact",
+      "email",
+      "phone",
+      "schedule"
+    ],
+    "response": "Got it \u2014 our lead strategist will prepare a custom proposal. Could you share your **email and phone** so we can schedule a consultation?"
+  },
+  {
+    "id": "objection_budget_6",
+    "intent": "objection_budget",
+    "stage": "Objection",
+    "pillar": "All",
+    "keywords": [
+      "budget",
+      "expensive",
+      "cost"
+    ],
+    "response": "I understand the **budget concern** \u2014 we provide a phased strategy to maximize ROI. Would you like to see the tier options that fit your goals?"
+  },
+  {
+    "id": "objection_timing_6",
+    "intent": "objection_timing",
+    "stage": "Objection",
+    "pillar": "All",
+    "keywords": [
+      "timing",
+      "schedule",
+      "start"
+    ],
+    "response": "Timing is important \u2014 we can phase the project to align with your schedule. When would you like to kick off?"
+  },
+  {
+    "id": "social_media_goal_7",
+    "intent": "social_media_goal",
+    "stage": "Discovery",
+    "pillar": "Social",
+    "keywords": [
+      "followers",
+      "engagement",
+      "conversions"
+    ],
+    "response": "Are you focusing more on **followers**, **engagement**, or **conversions**?"
+  },
+  {
+    "id": "social_media_milestone_7",
+    "intent": "social_media_milestone",
+    "stage": "Discovery",
+    "pillar": "Social",
+    "keywords": [
+      "milestone",
+      "goal",
+      "6 months"
+    ],
+    "response": "What\u2019s your biggest **milestone** for this growth in the next 6 months?"
+  },
+  {
+    "id": "ads_stack_check_7",
+    "intent": "ads_stack_check",
+    "stage": "Stack",
+    "pillar": "Ads",
+    "keywords": [
+      "paid ads",
+      "ads",
+      "campaign"
+    ],
+    "response": "Running paid ads today, or starting fresh?"
+  },
+  {
+    "id": "social_stack_check_7",
+    "intent": "social_stack_check",
+    "stage": "Stack",
+    "pillar": "Social",
+    "keywords": [
+      "reach",
+      "conversion",
+      "social media"
+    ],
+    "response": "Is it more about reaching your audience or converting followers to sales?"
+  },
+  {
+    "id": "web_ops_stack_check_7",
+    "intent": "web_ops_stack_check",
+    "stage": "Stack",
+    "pillar": "Web/Ops",
+    "keywords": [
+      "analytics",
+      "CRM",
+      "web",
+      "automation"
+    ],
+    "response": "Do you have analytics/CRM in place, or do we build from scratch?"
+  },
+  {
+    "id": "team_model_7",
+    "intent": "team_model",
+    "stage": "Team",
+    "pillar": "All",
+    "keywords": [
+      "team",
+      "agency",
+      "support",
+      "internal"
+    ],
+    "response": "Will you handle part in-house + agency support, or do you want **full agency management**?"
+  },
+  {
+    "id": "budget_timing_7",
+    "intent": "budget_timing",
+    "stage": "Budget",
+    "pillar": "All",
+    "keywords": [
+      "budget",
+      "tier",
+      "start",
+      "timing"
+    ],
+    "response": "Available tiers: **A SME \u00b7 B Mid \u00b7 C Enterprise**. When would you like to start?"
+  },
+  {
+    "id": "close_info_7",
+    "intent": "close_info",
+    "stage": "Close",
+    "pillar": "All",
+    "keywords": [
+      "contact",
+      "email",
+      "phone",
+      "schedule"
+    ],
+    "response": "Got it \u2014 our lead strategist will prepare a custom proposal. Could you share your **email and phone** so we can schedule a consultation?"
+  },
+  {
+    "id": "objection_budget_7",
+    "intent": "objection_budget",
+    "stage": "Objection",
+    "pillar": "All",
+    "keywords": [
+      "budget",
+      "expensive",
+      "cost"
+    ],
+    "response": "I understand the **budget concern** \u2014 we provide a phased strategy to maximize ROI. Would you like to see the tier options that fit your goals?"
+  },
+  {
+    "id": "objection_timing_7",
+    "intent": "objection_timing",
+    "stage": "Objection",
+    "pillar": "All",
+    "keywords": [
+      "timing",
+      "schedule",
+      "start"
+    ],
+    "response": "Timing is important \u2014 we can phase the project to align with your schedule. When would you like to kick off?"
+  },
+  {
+    "id": "social_media_goal_8",
+    "intent": "social_media_goal",
+    "stage": "Discovery",
+    "pillar": "Social",
+    "keywords": [
+      "followers",
+      "engagement",
+      "conversions"
+    ],
+    "response": "Are you focusing more on **followers**, **engagement**, or **conversions**?"
+  },
+  {
+    "id": "social_media_milestone_8",
+    "intent": "social_media_milestone",
+    "stage": "Discovery",
+    "pillar": "Social",
+    "keywords": [
+      "milestone",
+      "goal",
+      "6 months"
+    ],
+    "response": "What\u2019s your biggest **milestone** for this growth in the next 6 months?"
+  },
+  {
+    "id": "ads_stack_check_8",
+    "intent": "ads_stack_check",
+    "stage": "Stack",
+    "pillar": "Ads",
+    "keywords": [
+      "paid ads",
+      "ads",
+      "campaign"
+    ],
+    "response": "Running paid ads today, or starting fresh?"
+  },
+  {
+    "id": "social_stack_check_8",
+    "intent": "social_stack_check",
+    "stage": "Stack",
+    "pillar": "Social",
+    "keywords": [
+      "reach",
+      "conversion",
+      "social media"
+    ],
+    "response": "Is it more about reaching your audience or converting followers to sales?"
+  },
+  {
+    "id": "web_ops_stack_check_8",
+    "intent": "web_ops_stack_check",
+    "stage": "Stack",
+    "pillar": "Web/Ops",
+    "keywords": [
+      "analytics",
+      "CRM",
+      "web",
+      "automation"
+    ],
+    "response": "Do you have analytics/CRM in place, or do we build from scratch?"
+  },
+  {
+    "id": "team_model_8",
+    "intent": "team_model",
+    "stage": "Team",
+    "pillar": "All",
+    "keywords": [
+      "team",
+      "agency",
+      "support",
+      "internal"
+    ],
+    "response": "Will you handle part in-house + agency support, or do you want **full agency management**?"
+  },
+  {
+    "id": "budget_timing_8",
+    "intent": "budget_timing",
+    "stage": "Budget",
+    "pillar": "All",
+    "keywords": [
+      "budget",
+      "tier",
+      "start",
+      "timing"
+    ],
+    "response": "Available tiers: **A SME \u00b7 B Mid \u00b7 C Enterprise**. When would you like to start?"
+  },
+  {
+    "id": "close_info_8",
+    "intent": "close_info",
+    "stage": "Close",
+    "pillar": "All",
+    "keywords": [
+      "contact",
+      "email",
+      "phone",
+      "schedule"
+    ],
+    "response": "Got it \u2014 our lead strategist will prepare a custom proposal. Could you share your **email and phone** so we can schedule a consultation?"
+  },
+  {
+    "id": "objection_budget_8",
+    "intent": "objection_budget",
+    "stage": "Objection",
+    "pillar": "All",
+    "keywords": [
+      "budget",
+      "expensive",
+      "cost"
+    ],
+    "response": "I understand the **budget concern** \u2014 we provide a phased strategy to maximize ROI. Would you like to see the tier options that fit your goals?"
+  },
+  {
+    "id": "objection_timing_8",
+    "intent": "objection_timing",
+    "stage": "Objection",
+    "pillar": "All",
+    "keywords": [
+      "timing",
+      "schedule",
+      "start"
+    ],
+    "response": "Timing is important \u2014 we can phase the project to align with your schedule. When would you like to kick off?"
+  },
+  {
+    "id": "social_media_goal_9",
+    "intent": "social_media_goal",
+    "stage": "Discovery",
+    "pillar": "Social",
+    "keywords": [
+      "followers",
+      "engagement",
+      "conversions"
+    ],
+    "response": "Are you focusing more on **followers**, **engagement**, or **conversions**?"
+  },
+  {
+    "id": "social_media_milestone_9",
+    "intent": "social_media_milestone",
+    "stage": "Discovery",
+    "pillar": "Social",
+    "keywords": [
+      "milestone",
+      "goal",
+      "6 months"
+    ],
+    "response": "What\u2019s your biggest **milestone** for this growth in the next 6 months?"
+  },
+  {
+    "id": "ads_stack_check_9",
+    "intent": "ads_stack_check",
+    "stage": "Stack",
+    "pillar": "Ads",
+    "keywords": [
+      "paid ads",
+      "ads",
+      "campaign"
+    ],
+    "response": "Running paid ads today, or starting fresh?"
+  },
+  {
+    "id": "social_stack_check_9",
+    "intent": "social_stack_check",
+    "stage": "Stack",
+    "pillar": "Social",
+    "keywords": [
+      "reach",
+      "conversion",
+      "social media"
+    ],
+    "response": "Is it more about reaching your audience or converting followers to sales?"
+  },
+  {
+    "id": "web_ops_stack_check_9",
+    "intent": "web_ops_stack_check",
+    "stage": "Stack",
+    "pillar": "Web/Ops",
+    "keywords": [
+      "analytics",
+      "CRM",
+      "web",
+      "automation"
+    ],
+    "response": "Do you have analytics/CRM in place, or do we build from scratch?"
+  },
+  {
+    "id": "team_model_9",
+    "intent": "team_model",
+    "stage": "Team",
+    "pillar": "All",
+    "keywords": [
+      "team",
+      "agency",
+      "support",
+      "internal"
+    ],
+    "response": "Will you handle part in-house + agency support, or do you want **full agency management**?"
+  },
+  {
+    "id": "budget_timing_9",
+    "intent": "budget_timing",
+    "stage": "Budget",
+    "pillar": "All",
+    "keywords": [
+      "budget",
+      "tier",
+      "start",
+      "timing"
+    ],
+    "response": "Available tiers: **A SME \u00b7 B Mid \u00b7 C Enterprise**. When would you like to start?"
+  },
+  {
+    "id": "close_info_9",
+    "intent": "close_info",
+    "stage": "Close",
+    "pillar": "All",
+    "keywords": [
+      "contact",
+      "email",
+      "phone",
+      "schedule"
+    ],
+    "response": "Got it \u2014 our lead strategist will prepare a custom proposal. Could you share your **email and phone** so we can schedule a consultation?"
+  },
+  {
+    "id": "objection_budget_9",
+    "intent": "objection_budget",
+    "stage": "Objection",
+    "pillar": "All",
+    "keywords": [
+      "budget",
+      "expensive",
+      "cost"
+    ],
+    "response": "I understand the **budget concern** \u2014 we provide a phased strategy to maximize ROI. Would you like to see the tier options that fit your goals?"
+  },
+  {
+    "id": "objection_timing_9",
+    "intent": "objection_timing",
+    "stage": "Objection",
+    "pillar": "All",
+    "keywords": [
+      "timing",
+      "schedule",
+      "start"
+    ],
+    "response": "Timing is important \u2014 we can phase the project to align with your schedule. When would you like to kick off?"
+  },
+  {
+    "id": "social_media_goal_10",
+    "intent": "social_media_goal",
+    "stage": "Discovery",
+    "pillar": "Social",
+    "keywords": [
+      "followers",
+      "engagement",
+      "conversions"
+    ],
+    "response": "Are you focusing more on **followers**, **engagement**, or **conversions**?"
+  },
+  {
+    "id": "social_media_milestone_10",
+    "intent": "social_media_milestone",
+    "stage": "Discovery",
+    "pillar": "Social",
+    "keywords": [
+      "milestone",
+      "goal",
+      "6 months"
+    ],
+    "response": "What\u2019s your biggest **milestone** for this growth in the next 6 months?"
+  },
+  {
+    "id": "ads_stack_check_10",
+    "intent": "ads_stack_check",
+    "stage": "Stack",
+    "pillar": "Ads",
+    "keywords": [
+      "paid ads",
+      "ads",
+      "campaign"
+    ],
+    "response": "Running paid ads today, or starting fresh?"
+  },
+  {
+    "id": "social_stack_check_10",
+    "intent": "social_stack_check",
+    "stage": "Stack",
+    "pillar": "Social",
+    "keywords": [
+      "reach",
+      "conversion",
+      "social media"
+    ],
+    "response": "Is it more about reaching your audience or converting followers to sales?"
+  },
+  {
+    "id": "web_ops_stack_check_10",
+    "intent": "web_ops_stack_check",
+    "stage": "Stack",
+    "pillar": "Web/Ops",
+    "keywords": [
+      "analytics",
+      "CRM",
+      "web",
+      "automation"
+    ],
+    "response": "Do you have analytics/CRM in place, or do we build from scratch?"
+  },
+  {
+    "id": "team_model_10",
+    "intent": "team_model",
+    "stage": "Team",
+    "pillar": "All",
+    "keywords": [
+      "team",
+      "agency",
+      "support",
+      "internal"
+    ],
+    "response": "Will you handle part in-house + agency support, or do you want **full agency management**?"
+  },
+  {
+    "id": "budget_timing_10",
+    "intent": "budget_timing",
+    "stage": "Budget",
+    "pillar": "All",
+    "keywords": [
+      "budget",
+      "tier",
+      "start",
+      "timing"
+    ],
+    "response": "Available tiers: **A SME \u00b7 B Mid \u00b7 C Enterprise**. When would you like to start?"
+  },
+  {
+    "id": "close_info_10",
+    "intent": "close_info",
+    "stage": "Close",
+    "pillar": "All",
+    "keywords": [
+      "contact",
+      "email",
+      "phone",
+      "schedule"
+    ],
+    "response": "Got it \u2014 our lead strategist will prepare a custom proposal. Could you share your **email and phone** so we can schedule a consultation?"
+  },
+  {
+    "id": "objection_budget_10",
+    "intent": "objection_budget",
+    "stage": "Objection",
+    "pillar": "All",
+    "keywords": [
+      "budget",
+      "expensive",
+      "cost"
+    ],
+    "response": "I understand the **budget concern** \u2014 we provide a phased strategy to maximize ROI. Would you like to see the tier options that fit your goals?"
+  },
+  {
+    "id": "objection_timing_10",
+    "intent": "objection_timing",
+    "stage": "Objection",
+    "pillar": "All",
+    "keywords": [
+      "timing",
+      "schedule",
+      "start"
+    ],
+    "response": "Timing is important \u2014 we can phase the project to align with your schedule. When would you like to kick off?"
+  },
+  {
+    "id": "social_media_goal_11",
+    "intent": "social_media_goal",
+    "stage": "Discovery",
+    "pillar": "Social",
+    "keywords": [
+      "followers",
+      "engagement",
+      "conversions"
+    ],
+    "response": "Are you focusing more on **followers**, **engagement**, or **conversions**?"
+  },
+  {
+    "id": "social_media_milestone_11",
+    "intent": "social_media_milestone",
+    "stage": "Discovery",
+    "pillar": "Social",
+    "keywords": [
+      "milestone",
+      "goal",
+      "6 months"
+    ],
+    "response": "What\u2019s your biggest **milestone** for this growth in the next 6 months?"
+  },
+  {
+    "id": "ads_stack_check_11",
+    "intent": "ads_stack_check",
+    "stage": "Stack",
+    "pillar": "Ads",
+    "keywords": [
+      "paid ads",
+      "ads",
+      "campaign"
+    ],
+    "response": "Running paid ads today, or starting fresh?"
+  },
+  {
+    "id": "social_stack_check_11",
+    "intent": "social_stack_check",
+    "stage": "Stack",
+    "pillar": "Social",
+    "keywords": [
+      "reach",
+      "conversion",
+      "social media"
+    ],
+    "response": "Is it more about reaching your audience or converting followers to sales?"
+  },
+  {
+    "id": "web_ops_stack_check_11",
+    "intent": "web_ops_stack_check",
+    "stage": "Stack",
+    "pillar": "Web/Ops",
+    "keywords": [
+      "analytics",
+      "CRM",
+      "web",
+      "automation"
+    ],
+    "response": "Do you have analytics/CRM in place, or do we build from scratch?"
+  },
+  {
+    "id": "team_model_11",
+    "intent": "team_model",
+    "stage": "Team",
+    "pillar": "All",
+    "keywords": [
+      "team",
+      "agency",
+      "support",
+      "internal"
+    ],
+    "response": "Will you handle part in-house + agency support, or do you want **full agency management**?"
+  },
+  {
+    "id": "budget_timing_11",
+    "intent": "budget_timing",
+    "stage": "Budget",
+    "pillar": "All",
+    "keywords": [
+      "budget",
+      "tier",
+      "start",
+      "timing"
+    ],
+    "response": "Available tiers: **A SME \u00b7 B Mid \u00b7 C Enterprise**. When would you like to start?"
+  },
+  {
+    "id": "close_info_11",
+    "intent": "close_info",
+    "stage": "Close",
+    "pillar": "All",
+    "keywords": [
+      "contact",
+      "email",
+      "phone",
+      "schedule"
+    ],
+    "response": "Got it \u2014 our lead strategist will prepare a custom proposal. Could you share your **email and phone** so we can schedule a consultation?"
+  },
+  {
+    "id": "objection_budget_11",
+    "intent": "objection_budget",
+    "stage": "Objection",
+    "pillar": "All",
+    "keywords": [
+      "budget",
+      "expensive",
+      "cost"
+    ],
+    "response": "I understand the **budget concern** \u2014 we provide a phased strategy to maximize ROI. Would you like to see the tier options that fit your goals?"
+  },
+  {
+    "id": "objection_timing_11",
+    "intent": "objection_timing",
+    "stage": "Objection",
+    "pillar": "All",
+    "keywords": [
+      "timing",
+      "schedule",
+      "start"
+    ],
+    "response": "Timing is important \u2014 we can phase the project to align with your schedule. When would you like to kick off?"
+  },
+  {
+    "id": "social_media_goal_12",
+    "intent": "social_media_goal",
+    "stage": "Discovery",
+    "pillar": "Social",
+    "keywords": [
+      "followers",
+      "engagement",
+      "conversions"
+    ],
+    "response": "Are you focusing more on **followers**, **engagement**, or **conversions**?"
+  },
+  {
+    "id": "social_media_milestone_12",
+    "intent": "social_media_milestone",
+    "stage": "Discovery",
+    "pillar": "Social",
+    "keywords": [
+      "milestone",
+      "goal",
+      "6 months"
+    ],
+    "response": "What\u2019s your biggest **milestone** for this growth in the next 6 months?"
+  },
+  {
+    "id": "ads_stack_check_12",
+    "intent": "ads_stack_check",
+    "stage": "Stack",
+    "pillar": "Ads",
+    "keywords": [
+      "paid ads",
+      "ads",
+      "campaign"
+    ],
+    "response": "Running paid ads today, or starting fresh?"
+  },
+  {
+    "id": "social_stack_check_12",
+    "intent": "social_stack_check",
+    "stage": "Stack",
+    "pillar": "Social",
+    "keywords": [
+      "reach",
+      "conversion",
+      "social media"
+    ],
+    "response": "Is it more about reaching your audience or converting followers to sales?"
+  },
+  {
+    "id": "web_ops_stack_check_12",
+    "intent": "web_ops_stack_check",
+    "stage": "Stack",
+    "pillar": "Web/Ops",
+    "keywords": [
+      "analytics",
+      "CRM",
+      "web",
+      "automation"
+    ],
+    "response": "Do you have analytics/CRM in place, or do we build from scratch?"
+  },
+  {
+    "id": "team_model_12",
+    "intent": "team_model",
+    "stage": "Team",
+    "pillar": "All",
+    "keywords": [
+      "team",
+      "agency",
+      "support",
+      "internal"
+    ],
+    "response": "Will you handle part in-house + agency support, or do you want **full agency management**?"
+  },
+  {
+    "id": "budget_timing_12",
+    "intent": "budget_timing",
+    "stage": "Budget",
+    "pillar": "All",
+    "keywords": [
+      "budget",
+      "tier",
+      "start",
+      "timing"
+    ],
+    "response": "Available tiers: **A SME \u00b7 B Mid \u00b7 C Enterprise**. When would you like to start?"
+  },
+  {
+    "id": "close_info_12",
+    "intent": "close_info",
+    "stage": "Close",
+    "pillar": "All",
+    "keywords": [
+      "contact",
+      "email",
+      "phone",
+      "schedule"
+    ],
+    "response": "Got it \u2014 our lead strategist will prepare a custom proposal. Could you share your **email and phone** so we can schedule a consultation?"
+  },
+  {
+    "id": "objection_budget_12",
+    "intent": "objection_budget",
+    "stage": "Objection",
+    "pillar": "All",
+    "keywords": [
+      "budget",
+      "expensive",
+      "cost"
+    ],
+    "response": "I understand the **budget concern** \u2014 we provide a phased strategy to maximize ROI. Would you like to see the tier options that fit your goals?"
+  },
+  {
+    "id": "objection_timing_12",
+    "intent": "objection_timing",
+    "stage": "Objection",
+    "pillar": "All",
+    "keywords": [
+      "timing",
+      "schedule",
+      "start"
+    ],
+    "response": "Timing is important \u2014 we can phase the project to align with your schedule. When would you like to kick off?"
+  },
+  {
+    "id": "social_media_goal_13",
+    "intent": "social_media_goal",
+    "stage": "Discovery",
+    "pillar": "Social",
+    "keywords": [
+      "followers",
+      "engagement",
+      "conversions"
+    ],
+    "response": "Are you focusing more on **followers**, **engagement**, or **conversions**?"
+  },
+  {
+    "id": "social_media_milestone_13",
+    "intent": "social_media_milestone",
+    "stage": "Discovery",
+    "pillar": "Social",
+    "keywords": [
+      "milestone",
+      "goal",
+      "6 months"
+    ],
+    "response": "What\u2019s your biggest **milestone** for this growth in the next 6 months?"
+  },
+  {
+    "id": "ads_stack_check_13",
+    "intent": "ads_stack_check",
+    "stage": "Stack",
+    "pillar": "Ads",
+    "keywords": [
+      "paid ads",
+      "ads",
+      "campaign"
+    ],
+    "response": "Running paid ads today, or starting fresh?"
+  },
+  {
+    "id": "social_stack_check_13",
+    "intent": "social_stack_check",
+    "stage": "Stack",
+    "pillar": "Social",
+    "keywords": [
+      "reach",
+      "conversion",
+      "social media"
+    ],
+    "response": "Is it more about reaching your audience or converting followers to sales?"
+  },
+  {
+    "id": "web_ops_stack_check_13",
+    "intent": "web_ops_stack_check",
+    "stage": "Stack",
+    "pillar": "Web/Ops",
+    "keywords": [
+      "analytics",
+      "CRM",
+      "web",
+      "automation"
+    ],
+    "response": "Do you have analytics/CRM in place, or do we build from scratch?"
+  },
+  {
+    "id": "team_model_13",
+    "intent": "team_model",
+    "stage": "Team",
+    "pillar": "All",
+    "keywords": [
+      "team",
+      "agency",
+      "support",
+      "internal"
+    ],
+    "response": "Will you handle part in-house + agency support, or do you want **full agency management**?"
+  },
+  {
+    "id": "budget_timing_13",
+    "intent": "budget_timing",
+    "stage": "Budget",
+    "pillar": "All",
+    "keywords": [
+      "budget",
+      "tier",
+      "start",
+      "timing"
+    ],
+    "response": "Available tiers: **A SME \u00b7 B Mid \u00b7 C Enterprise**. When would you like to start?"
+  },
+  {
+    "id": "close_info_13",
+    "intent": "close_info",
+    "stage": "Close",
+    "pillar": "All",
+    "keywords": [
+      "contact",
+      "email",
+      "phone",
+      "schedule"
+    ],
+    "response": "Got it \u2014 our lead strategist will prepare a custom proposal. Could you share your **email and phone** so we can schedule a consultation?"
+  },
+  {
+    "id": "objection_budget_13",
+    "intent": "objection_budget",
+    "stage": "Objection",
+    "pillar": "All",
+    "keywords": [
+      "budget",
+      "expensive",
+      "cost"
+    ],
+    "response": "I understand the **budget concern** \u2014 we provide a phased strategy to maximize ROI. Would you like to see the tier options that fit your goals?"
+  },
+  {
+    "id": "objection_timing_13",
+    "intent": "objection_timing",
+    "stage": "Objection",
+    "pillar": "All",
+    "keywords": [
+      "timing",
+      "schedule",
+      "start"
+    ],
+    "response": "Timing is important \u2014 we can phase the project to align with your schedule. When would you like to kick off?"
+  },
+  {
+    "id": "social_media_goal_14",
+    "intent": "social_media_goal",
+    "stage": "Discovery",
+    "pillar": "Social",
+    "keywords": [
+      "followers",
+      "engagement",
+      "conversions"
+    ],
+    "response": "Are you focusing more on **followers**, **engagement**, or **conversions**?"
+  },
+  {
+    "id": "social_media_milestone_14",
+    "intent": "social_media_milestone",
+    "stage": "Discovery",
+    "pillar": "Social",
+    "keywords": [
+      "milestone",
+      "goal",
+      "6 months"
+    ],
+    "response": "What\u2019s your biggest **milestone** for this growth in the next 6 months?"
+  },
+  {
+    "id": "ads_stack_check_14",
+    "intent": "ads_stack_check",
+    "stage": "Stack",
+    "pillar": "Ads",
+    "keywords": [
+      "paid ads",
+      "ads",
+      "campaign"
+    ],
+    "response": "Running paid ads today, or starting fresh?"
+  },
+  {
+    "id": "social_stack_check_14",
+    "intent": "social_stack_check",
+    "stage": "Stack",
+    "pillar": "Social",
+    "keywords": [
+      "reach",
+      "conversion",
+      "social media"
+    ],
+    "response": "Is it more about reaching your audience or converting followers to sales?"
+  },
+  {
+    "id": "web_ops_stack_check_14",
+    "intent": "web_ops_stack_check",
+    "stage": "Stack",
+    "pillar": "Web/Ops",
+    "keywords": [
+      "analytics",
+      "CRM",
+      "web",
+      "automation"
+    ],
+    "response": "Do you have analytics/CRM in place, or do we build from scratch?"
+  },
+  {
+    "id": "team_model_14",
+    "intent": "team_model",
+    "stage": "Team",
+    "pillar": "All",
+    "keywords": [
+      "team",
+      "agency",
+      "support",
+      "internal"
+    ],
+    "response": "Will you handle part in-house + agency support, or do you want **full agency management**?"
+  },
+  {
+    "id": "budget_timing_14",
+    "intent": "budget_timing",
+    "stage": "Budget",
+    "pillar": "All",
+    "keywords": [
+      "budget",
+      "tier",
+      "start",
+      "timing"
+    ],
+    "response": "Available tiers: **A SME \u00b7 B Mid \u00b7 C Enterprise**. When would you like to start?"
+  },
+  {
+    "id": "close_info_14",
+    "intent": "close_info",
+    "stage": "Close",
+    "pillar": "All",
+    "keywords": [
+      "contact",
+      "email",
+      "phone",
+      "schedule"
+    ],
+    "response": "Got it \u2014 our lead strategist will prepare a custom proposal. Could you share your **email and phone** so we can schedule a consultation?"
+  },
+  {
+    "id": "objection_budget_14",
+    "intent": "objection_budget",
+    "stage": "Objection",
+    "pillar": "All",
+    "keywords": [
+      "budget",
+      "expensive",
+      "cost"
+    ],
+    "response": "I understand the **budget concern** \u2014 we provide a phased strategy to maximize ROI. Would you like to see the tier options that fit your goals?"
+  },
+  {
+    "id": "objection_timing_14",
+    "intent": "objection_timing",
+    "stage": "Objection",
+    "pillar": "All",
+    "keywords": [
+      "timing",
+      "schedule",
+      "start"
+    ],
+    "response": "Timing is important \u2014 we can phase the project to align with your schedule. When would you like to kick off?"
+  },
+  {
+    "id": "social_media_goal_15",
+    "intent": "social_media_goal",
+    "stage": "Discovery",
+    "pillar": "Social",
+    "keywords": [
+      "followers",
+      "engagement",
+      "conversions"
+    ],
+    "response": "Are you focusing more on **followers**, **engagement**, or **conversions**?"
+  },
+  {
+    "id": "social_media_milestone_15",
+    "intent": "social_media_milestone",
+    "stage": "Discovery",
+    "pillar": "Social",
+    "keywords": [
+      "milestone",
+      "goal",
+      "6 months"
+    ],
+    "response": "What\u2019s your biggest **milestone** for this growth in the next 6 months?"
+  },
+  {
+    "id": "ads_stack_check_15",
+    "intent": "ads_stack_check",
+    "stage": "Stack",
+    "pillar": "Ads",
+    "keywords": [
+      "paid ads",
+      "ads",
+      "campaign"
+    ],
+    "response": "Running paid ads today, or starting fresh?"
+  },
+  {
+    "id": "social_stack_check_15",
+    "intent": "social_stack_check",
+    "stage": "Stack",
+    "pillar": "Social",
+    "keywords": [
+      "reach",
+      "conversion",
+      "social media"
+    ],
+    "response": "Is it more about reaching your audience or converting followers to sales?"
+  },
+  {
+    "id": "web_ops_stack_check_15",
+    "intent": "web_ops_stack_check",
+    "stage": "Stack",
+    "pillar": "Web/Ops",
+    "keywords": [
+      "analytics",
+      "CRM",
+      "web",
+      "automation"
+    ],
+    "response": "Do you have analytics/CRM in place, or do we build from scratch?"
+  },
+  {
+    "id": "team_model_15",
+    "intent": "team_model",
+    "stage": "Team",
+    "pillar": "All",
+    "keywords": [
+      "team",
+      "agency",
+      "support",
+      "internal"
+    ],
+    "response": "Will you handle part in-house + agency support, or do you want **full agency management**?"
+  },
+  {
+    "id": "budget_timing_15",
+    "intent": "budget_timing",
+    "stage": "Budget",
+    "pillar": "All",
+    "keywords": [
+      "budget",
+      "tier",
+      "start",
+      "timing"
+    ],
+    "response": "Available tiers: **A SME \u00b7 B Mid \u00b7 C Enterprise**. When would you like to start?"
+  },
+  {
+    "id": "close_info_15",
+    "intent": "close_info",
+    "stage": "Close",
+    "pillar": "All",
+    "keywords": [
+      "contact",
+      "email",
+      "phone",
+      "schedule"
+    ],
+    "response": "Got it \u2014 our lead strategist will prepare a custom proposal. Could you share your **email and phone** so we can schedule a consultation?"
+  },
+  {
+    "id": "objection_budget_15",
+    "intent": "objection_budget",
+    "stage": "Objection",
+    "pillar": "All",
+    "keywords": [
+      "budget",
+      "expensive",
+      "cost"
+    ],
+    "response": "I understand the **budget concern** \u2014 we provide a phased strategy to maximize ROI. Would you like to see the tier options that fit your goals?"
+  },
+  {
+    "id": "objection_timing_15",
+    "intent": "objection_timing",
+    "stage": "Objection",
+    "pillar": "All",
+    "keywords": [
+      "timing",
+      "schedule",
+      "start"
+    ],
+    "response": "Timing is important \u2014 we can phase the project to align with your schedule. When would you like to kick off?"
+  },
+  {
+    "id": "social_media_goal_16",
+    "intent": "social_media_goal",
+    "stage": "Discovery",
+    "pillar": "Social",
+    "keywords": [
+      "followers",
+      "engagement",
+      "conversions"
+    ],
+    "response": "Are you focusing more on **followers**, **engagement**, or **conversions**?"
+  },
+  {
+    "id": "social_media_milestone_16",
+    "intent": "social_media_milestone",
+    "stage": "Discovery",
+    "pillar": "Social",
+    "keywords": [
+      "milestone",
+      "goal",
+      "6 months"
+    ],
+    "response": "What\u2019s your biggest **milestone** for this growth in the next 6 months?"
+  },
+  {
+    "id": "ads_stack_check_16",
+    "intent": "ads_stack_check",
+    "stage": "Stack",
+    "pillar": "Ads",
+    "keywords": [
+      "paid ads",
+      "ads",
+      "campaign"
+    ],
+    "response": "Running paid ads today, or starting fresh?"
+  },
+  {
+    "id": "social_stack_check_16",
+    "intent": "social_stack_check",
+    "stage": "Stack",
+    "pillar": "Social",
+    "keywords": [
+      "reach",
+      "conversion",
+      "social media"
+    ],
+    "response": "Is it more about reaching your audience or converting followers to sales?"
+  },
+  {
+    "id": "web_ops_stack_check_16",
+    "intent": "web_ops_stack_check",
+    "stage": "Stack",
+    "pillar": "Web/Ops",
+    "keywords": [
+      "analytics",
+      "CRM",
+      "web",
+      "automation"
+    ],
+    "response": "Do you have analytics/CRM in place, or do we build from scratch?"
+  },
+  {
+    "id": "team_model_16",
+    "intent": "team_model",
+    "stage": "Team",
+    "pillar": "All",
+    "keywords": [
+      "team",
+      "agency",
+      "support",
+      "internal"
+    ],
+    "response": "Will you handle part in-house + agency support, or do you want **full agency management**?"
+  },
+  {
+    "id": "budget_timing_16",
+    "intent": "budget_timing",
+    "stage": "Budget",
+    "pillar": "All",
+    "keywords": [
+      "budget",
+      "tier",
+      "start",
+      "timing"
+    ],
+    "response": "Available tiers: **A SME \u00b7 B Mid \u00b7 C Enterprise**. When would you like to start?"
+  },
+  {
+    "id": "close_info_16",
+    "intent": "close_info",
+    "stage": "Close",
+    "pillar": "All",
+    "keywords": [
+      "contact",
+      "email",
+      "phone",
+      "schedule"
+    ],
+    "response": "Got it \u2014 our lead strategist will prepare a custom proposal. Could you share your **email and phone** so we can schedule a consultation?"
+  },
+  {
+    "id": "objection_budget_16",
+    "intent": "objection_budget",
+    "stage": "Objection",
+    "pillar": "All",
+    "keywords": [
+      "budget",
+      "expensive",
+      "cost"
+    ],
+    "response": "I understand the **budget concern** \u2014 we provide a phased strategy to maximize ROI. Would you like to see the tier options that fit your goals?"
+  },
+  {
+    "id": "objection_timing_16",
+    "intent": "objection_timing",
+    "stage": "Objection",
+    "pillar": "All",
+    "keywords": [
+      "timing",
+      "schedule",
+      "start"
+    ],
+    "response": "Timing is important \u2014 we can phase the project to align with your schedule. When would you like to kick off?"
+  },
+  {
+    "id": "social_media_goal_17",
+    "intent": "social_media_goal",
+    "stage": "Discovery",
+    "pillar": "Social",
+    "keywords": [
+      "followers",
+      "engagement",
+      "conversions"
+    ],
+    "response": "Are you focusing more on **followers**, **engagement**, or **conversions**?"
+  },
+  {
+    "id": "social_media_milestone_17",
+    "intent": "social_media_milestone",
+    "stage": "Discovery",
+    "pillar": "Social",
+    "keywords": [
+      "milestone",
+      "goal",
+      "6 months"
+    ],
+    "response": "What\u2019s your biggest **milestone** for this growth in the next 6 months?"
+  },
+  {
+    "id": "ads_stack_check_17",
+    "intent": "ads_stack_check",
+    "stage": "Stack",
+    "pillar": "Ads",
+    "keywords": [
+      "paid ads",
+      "ads",
+      "campaign"
+    ],
+    "response": "Running paid ads today, or starting fresh?"
+  },
+  {
+    "id": "social_stack_check_17",
+    "intent": "social_stack_check",
+    "stage": "Stack",
+    "pillar": "Social",
+    "keywords": [
+      "reach",
+      "conversion",
+      "social media"
+    ],
+    "response": "Is it more about reaching your audience or converting followers to sales?"
+  },
+  {
+    "id": "web_ops_stack_check_17",
+    "intent": "web_ops_stack_check",
+    "stage": "Stack",
+    "pillar": "Web/Ops",
+    "keywords": [
+      "analytics",
+      "CRM",
+      "web",
+      "automation"
+    ],
+    "response": "Do you have analytics/CRM in place, or do we build from scratch?"
+  },
+  {
+    "id": "team_model_17",
+    "intent": "team_model",
+    "stage": "Team",
+    "pillar": "All",
+    "keywords": [
+      "team",
+      "agency",
+      "support",
+      "internal"
+    ],
+    "response": "Will you handle part in-house + agency support, or do you want **full agency management**?"
+  },
+  {
+    "id": "budget_timing_17",
+    "intent": "budget_timing",
+    "stage": "Budget",
+    "pillar": "All",
+    "keywords": [
+      "budget",
+      "tier",
+      "start",
+      "timing"
+    ],
+    "response": "Available tiers: **A SME \u00b7 B Mid \u00b7 C Enterprise**. When would you like to start?"
+  },
+  {
+    "id": "close_info_17",
+    "intent": "close_info",
+    "stage": "Close",
+    "pillar": "All",
+    "keywords": [
+      "contact",
+      "email",
+      "phone",
+      "schedule"
+    ],
+    "response": "Got it \u2014 our lead strategist will prepare a custom proposal. Could you share your **email and phone** so we can schedule a consultation?"
+  },
+  {
+    "id": "objection_budget_17",
+    "intent": "objection_budget",
+    "stage": "Objection",
+    "pillar": "All",
+    "keywords": [
+      "budget",
+      "expensive",
+      "cost"
+    ],
+    "response": "I understand the **budget concern** \u2014 we provide a phased strategy to maximize ROI. Would you like to see the tier options that fit your goals?"
+  },
+  {
+    "id": "objection_timing_17",
+    "intent": "objection_timing",
+    "stage": "Objection",
+    "pillar": "All",
+    "keywords": [
+      "timing",
+      "schedule",
+      "start"
+    ],
+    "response": "Timing is important \u2014 we can phase the project to align with your schedule. When would you like to kick off?"
+  },
+  {
+    "id": "social_media_goal_18",
+    "intent": "social_media_goal",
+    "stage": "Discovery",
+    "pillar": "Social",
+    "keywords": [
+      "followers",
+      "engagement",
+      "conversions"
+    ],
+    "response": "Are you focusing more on **followers**, **engagement**, or **conversions**?"
+  },
+  {
+    "id": "social_media_milestone_18",
+    "intent": "social_media_milestone",
+    "stage": "Discovery",
+    "pillar": "Social",
+    "keywords": [
+      "milestone",
+      "goal",
+      "6 months"
+    ],
+    "response": "What\u2019s your biggest **milestone** for this growth in the next 6 months?"
+  },
+  {
+    "id": "ads_stack_check_18",
+    "intent": "ads_stack_check",
+    "stage": "Stack",
+    "pillar": "Ads",
+    "keywords": [
+      "paid ads",
+      "ads",
+      "campaign"
+    ],
+    "response": "Running paid ads today, or starting fresh?"
+  },
+  {
+    "id": "social_stack_check_18",
+    "intent": "social_stack_check",
+    "stage": "Stack",
+    "pillar": "Social",
+    "keywords": [
+      "reach",
+      "conversion",
+      "social media"
+    ],
+    "response": "Is it more about reaching your audience or converting followers to sales?"
+  },
+  {
+    "id": "web_ops_stack_check_18",
+    "intent": "web_ops_stack_check",
+    "stage": "Stack",
+    "pillar": "Web/Ops",
+    "keywords": [
+      "analytics",
+      "CRM",
+      "web",
+      "automation"
+    ],
+    "response": "Do you have analytics/CRM in place, or do we build from scratch?"
+  },
+  {
+    "id": "team_model_18",
+    "intent": "team_model",
+    "stage": "Team",
+    "pillar": "All",
+    "keywords": [
+      "team",
+      "agency",
+      "support",
+      "internal"
+    ],
+    "response": "Will you handle part in-house + agency support, or do you want **full agency management**?"
+  },
+  {
+    "id": "budget_timing_18",
+    "intent": "budget_timing",
+    "stage": "Budget",
+    "pillar": "All",
+    "keywords": [
+      "budget",
+      "tier",
+      "start",
+      "timing"
+    ],
+    "response": "Available tiers: **A SME \u00b7 B Mid \u00b7 C Enterprise**. When would you like to start?"
+  },
+  {
+    "id": "close_info_18",
+    "intent": "close_info",
+    "stage": "Close",
+    "pillar": "All",
+    "keywords": [
+      "contact",
+      "email",
+      "phone",
+      "schedule"
+    ],
+    "response": "Got it \u2014 our lead strategist will prepare a custom proposal. Could you share your **email and phone** so we can schedule a consultation?"
+  },
+  {
+    "id": "objection_budget_18",
+    "intent": "objection_budget",
+    "stage": "Objection",
+    "pillar": "All",
+    "keywords": [
+      "budget",
+      "expensive",
+      "cost"
+    ],
+    "response": "I understand the **budget concern** \u2014 we provide a phased strategy to maximize ROI. Would you like to see the tier options that fit your goals?"
+  },
+  {
+    "id": "objection_timing_18",
+    "intent": "objection_timing",
+    "stage": "Objection",
+    "pillar": "All",
+    "keywords": [
+      "timing",
+      "schedule",
+      "start"
+    ],
+    "response": "Timing is important \u2014 we can phase the project to align with your schedule. When would you like to kick off?"
+  },
+  {
+    "id": "social_media_goal_19",
+    "intent": "social_media_goal",
+    "stage": "Discovery",
+    "pillar": "Social",
+    "keywords": [
+      "followers",
+      "engagement",
+      "conversions"
+    ],
+    "response": "Are you focusing more on **followers**, **engagement**, or **conversions**?"
+  },
+  {
+    "id": "social_media_milestone_19",
+    "intent": "social_media_milestone",
+    "stage": "Discovery",
+    "pillar": "Social",
+    "keywords": [
+      "milestone",
+      "goal",
+      "6 months"
+    ],
+    "response": "What\u2019s your biggest **milestone** for this growth in the next 6 months?"
+  },
+  {
+    "id": "ads_stack_check_19",
+    "intent": "ads_stack_check",
+    "stage": "Stack",
+    "pillar": "Ads",
+    "keywords": [
+      "paid ads",
+      "ads",
+      "campaign"
+    ],
+    "response": "Running paid ads today, or starting fresh?"
+  },
+  {
+    "id": "social_stack_check_19",
+    "intent": "social_stack_check",
+    "stage": "Stack",
+    "pillar": "Social",
+    "keywords": [
+      "reach",
+      "conversion",
+      "social media"
+    ],
+    "response": "Is it more about reaching your audience or converting followers to sales?"
+  },
+  {
+    "id": "web_ops_stack_check_19",
+    "intent": "web_ops_stack_check",
+    "stage": "Stack",
+    "pillar": "Web/Ops",
+    "keywords": [
+      "analytics",
+      "CRM",
+      "web",
+      "automation"
+    ],
+    "response": "Do you have analytics/CRM in place, or do we build from scratch?"
+  },
+  {
+    "id": "team_model_19",
+    "intent": "team_model",
+    "stage": "Team",
+    "pillar": "All",
+    "keywords": [
+      "team",
+      "agency",
+      "support",
+      "internal"
+    ],
+    "response": "Will you handle part in-house + agency support, or do you want **full agency management**?"
+  },
+  {
+    "id": "budget_timing_19",
+    "intent": "budget_timing",
+    "stage": "Budget",
+    "pillar": "All",
+    "keywords": [
+      "budget",
+      "tier",
+      "start",
+      "timing"
+    ],
+    "response": "Available tiers: **A SME \u00b7 B Mid \u00b7 C Enterprise**. When would you like to start?"
+  },
+  {
+    "id": "close_info_19",
+    "intent": "close_info",
+    "stage": "Close",
+    "pillar": "All",
+    "keywords": [
+      "contact",
+      "email",
+      "phone",
+      "schedule"
+    ],
+    "response": "Got it \u2014 our lead strategist will prepare a custom proposal. Could you share your **email and phone** so we can schedule a consultation?"
+  },
+  {
+    "id": "objection_budget_19",
+    "intent": "objection_budget",
+    "stage": "Objection",
+    "pillar": "All",
+    "keywords": [
+      "budget",
+      "expensive",
+      "cost"
+    ],
+    "response": "I understand the **budget concern** \u2014 we provide a phased strategy to maximize ROI. Would you like to see the tier options that fit your goals?"
+  },
+  {
+    "id": "objection_timing_19",
+    "intent": "objection_timing",
+    "stage": "Objection",
+    "pillar": "All",
+    "keywords": [
+      "timing",
+      "schedule",
+      "start"
+    ],
+    "response": "Timing is important \u2014 we can phase the project to align with your schedule. When would you like to kick off?"
+  },
+  {
+    "id": "social_media_goal_20",
+    "intent": "social_media_goal",
+    "stage": "Discovery",
+    "pillar": "Social",
+    "keywords": [
+      "followers",
+      "engagement",
+      "conversions"
+    ],
+    "response": "Are you focusing more on **followers**, **engagement**, or **conversions**?"
+  },
+  {
+    "id": "social_media_milestone_20",
+    "intent": "social_media_milestone",
+    "stage": "Discovery",
+    "pillar": "Social",
+    "keywords": [
+      "milestone",
+      "goal",
+      "6 months"
+    ],
+    "response": "What\u2019s your biggest **milestone** for this growth in the next 6 months?"
+  },
+  {
+    "id": "ads_stack_check_20",
+    "intent": "ads_stack_check",
+    "stage": "Stack",
+    "pillar": "Ads",
+    "keywords": [
+      "paid ads",
+      "ads",
+      "campaign"
+    ],
+    "response": "Running paid ads today, or starting fresh?"
+  },
+  {
+    "id": "social_stack_check_20",
+    "intent": "social_stack_check",
+    "stage": "Stack",
+    "pillar": "Social",
+    "keywords": [
+      "reach",
+      "conversion",
+      "social media"
+    ],
+    "response": "Is it more about reaching your audience or converting followers to sales?"
+  },
+  {
+    "id": "web_ops_stack_check_20",
+    "intent": "web_ops_stack_check",
+    "stage": "Stack",
+    "pillar": "Web/Ops",
+    "keywords": [
+      "analytics",
+      "CRM",
+      "web",
+      "automation"
+    ],
+    "response": "Do you have analytics/CRM in place, or do we build from scratch?"
+  },
+  {
+    "id": "team_model_20",
+    "intent": "team_model",
+    "stage": "Team",
+    "pillar": "All",
+    "keywords": [
+      "team",
+      "agency",
+      "support",
+      "internal"
+    ],
+    "response": "Will you handle part in-house + agency support, or do you want **full agency management**?"
+  },
+  {
+    "id": "budget_timing_20",
+    "intent": "budget_timing",
+    "stage": "Budget",
+    "pillar": "All",
+    "keywords": [
+      "budget",
+      "tier",
+      "start",
+      "timing"
+    ],
+    "response": "Available tiers: **A SME \u00b7 B Mid \u00b7 C Enterprise**. When would you like to start?"
+  },
+  {
+    "id": "close_info_20",
+    "intent": "close_info",
+    "stage": "Close",
+    "pillar": "All",
+    "keywords": [
+      "contact",
+      "email",
+      "phone",
+      "schedule"
+    ],
+    "response": "Got it \u2014 our lead strategist will prepare a custom proposal. Could you share your **email and phone** so we can schedule a consultation?"
+  },
+  {
+    "id": "objection_budget_20",
+    "intent": "objection_budget",
+    "stage": "Objection",
+    "pillar": "All",
+    "keywords": [
+      "budget",
+      "expensive",
+      "cost"
+    ],
+    "response": "I understand the **budget concern** \u2014 we provide a phased strategy to maximize ROI. Would you like to see the tier options that fit your goals?"
+  },
+  {
+    "id": "objection_timing_20",
+    "intent": "objection_timing",
+    "stage": "Objection",
+    "pillar": "All",
+    "keywords": [
+      "timing",
+      "schedule",
+      "start"
+    ],
+    "response": "Timing is important \u2014 we can phase the project to align with your schedule. When would you like to kick off?"
+  }
+]

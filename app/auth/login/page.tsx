@@ -1,3 +1,4 @@
+import { AuthFormSkeleton } from "@/components/platform/page-skeletons";
 import { LoginForm } from "@/components/platform/auth/login-form";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -24,9 +25,7 @@ export default function AuthLoginPage() {
         </p>
       </div>
 
-      <Suspense
-        fallback={<div className="platform-card h-72 animate-pulse rounded-2xl" aria-hidden />}
-      >
+      <Suspense fallback={<AuthFormSkeleton fields={2} />}>
         <LoginForm />
       </Suspense>
 

@@ -818,7 +818,12 @@ export async function getDashboardStats(
 export async function getKnowledgeContextForAgent(
   agentId: string,
   organizationId?: string,
-  options?: { strict?: boolean }
+  options?: {
+    strict?: boolean;
+    userMessage?: string;
+    workflowStage?: string | null;
+    readybotStep?: import("./workflow/readybot-stage-engine").ReadybotPipelineStep | null;
+  }
 ): Promise<string> {
   const strict = options?.strict ?? false;
   const kbIds = await getAgentKnowledgeBaseIds(agentId);
@@ -856,9 +861,37 @@ export async function getKnowledgeContextForAgent(
     }
   }
 
-  return entries
-    .map((e) => `### ${e.title} (${e.category})\n${e.content}`)
-    .join("\n\n");
+  const { partitionKnowledgeEntries, retrieveReadybotPlaybookContext, formatCoreKnowledgeEntries } =
+    await import("./knowledge/readybot-playbook-retrieval");
+
+  const { playbook, core } = partitionKnowledgeEntries(entries);
+  const coreBlock = formatCoreKnowledgeEntries(core);
+
+  if (playbook.length > 0 && options?.userMessage?.trim()) {
+    const playbookBlock = retrieveReadybotPlaybookContext(
+      playbook,
+      options.userMessage,
+      {
+        workflowStage: options.workflowStage,
+        readybotStep: options.readybotStep,
+      }
+    );
+    return [coreBlock, playbookBlock].filter(Boolean).join("\n\n");
+  }
+
+  if (playbook.length > 0 && playbook.length <= 12) {
+    return formatCoreKnowledgeEntries(entries);
+  }
+
+  if (playbook.length > 0) {
+    const stageOnly = retrieveReadybotPlaybookContext(playbook, "", {
+      workflowStage: options?.workflowStage,
+      readybotStep: options?.readybotStep,
+    });
+    return [coreBlock, stageOnly].filter(Boolean).join("\n\n");
+  }
+
+  return coreBlock;
 }
 
 export async function getConversationBySession(
