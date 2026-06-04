@@ -240,7 +240,7 @@ export function Landing() {
               {l.label}
             </a>
           ))}
-          <Link href="/voice">Voice</Link>
+          {/* <Link href="/voice">Voice</Link> */}
         </nav>
         <div className={styles.navCtas}>
           <Link href={loginUrl()} className={styles.linkMuted}>
@@ -717,7 +717,7 @@ export function Landing() {
           <div className={styles.footerCol}>
             <h4>Company</h4>
             <Link href={demoCtaHref}>Book AI agent demo</Link>
-            <Link href="/voice">Voice</Link>
+            {/* <Link href="/voice">Voice</Link> */}
             <Link href="/meet">Meet</Link>
             <Link href={loginUrl()}>Sign in</Link>
           </div>
