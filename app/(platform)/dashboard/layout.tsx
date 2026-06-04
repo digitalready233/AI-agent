@@ -1,4 +1,10 @@
+import type { Metadata } from "next";
 import { requireSession } from "@/lib/platform/auth";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+  title: "Workspace",
+};
 import { getOrganizationSettings } from "@/lib/platform/settings-data";
 import { DashboardShell } from "@/components/platform/dashboard-shell";
 import { BillingGate } from "@/components/platform/billing-gate";

@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { Outfit, Syne } from "next/font/google";
+import { CookieConsentBanner } from "@/components/cookie-consent-banner";
+import { OrganizationJsonLd } from "@/components/seo/organization-json-ld";
+import { rootMetadata } from "@/lib/seo/site";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -19,9 +22,7 @@ const syne = Syne({
 });
 
 export const metadata: Metadata = {
-  title: "DigiSales.ai — Premium AI Sales & Qualification",
-  description:
-    "Always-on discovery, ReadyBot qualification, live staff handoff, and embeddable chat for growth brands in Ghana and beyond.",
+  ...rootMetadata,
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "32x32" },
@@ -38,7 +39,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${outfit.variable} ${syne.variable}`}>
-      <body className={outfit.className}>{children}</body>
+      <body className={outfit.className}>
+        <OrganizationJsonLd />
+        {children}
+        <CookieConsentBanner />
+      </body>
     </html>
   );
 }

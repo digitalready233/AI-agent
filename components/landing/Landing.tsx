@@ -711,6 +711,7 @@ export function Landing() {
             <Link href={bookDemoHref}>Book AI agent demo</Link>
             {/* <Link href="/voice">Voice</Link> */}
             <Link href="/meet">Meet</Link>
+            <Link href="/privacy">Privacy & cookies</Link>
             <Link href={loginUrl()}>Sign in</Link>
           </div>
         </div>

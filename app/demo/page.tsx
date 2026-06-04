@@ -2,7 +2,15 @@ import Link from "next/link";
 import { CalendlyInline } from "@/components/demo/calendly-inline";
 import { booking, brand } from "@/lib/config";
 import { calendlyEmbedUrl } from "@/lib/booking/calendly";
+import { createPageMetadata } from "@/lib/seo/site";
 import styles from "./demo.module.css";
+
+export const metadata = createPageMetadata({
+  title: "Book an AI sales agent demo",
+  description:
+    "Schedule a live walkthrough of DigiSales.ai — qualification, demo rooms, handoff, integrations, and rollout for your team.",
+  path: "/demo",
+});
 
 const BENEFITS = [
   {
