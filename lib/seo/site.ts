@@ -3,13 +3,37 @@ import { brand } from "@/lib/config";
 
 const DEFAULT_SITE_URL = "https://digitalreadyai.botchrealty.com";
 
+function normalizeSiteUrl(raw: string): string {
+  let value = raw.trim().replace(/\/+$/, "");
+  if (!value) return DEFAULT_SITE_URL;
+
+  if (!/^https?:\/\//i.test(value)) {
+    value = `https://${value}`;
+  }
+
+  try {
+    const parsed = new URL(value);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      return DEFAULT_SITE_URL;
+    }
+    return `${parsed.protocol}//${parsed.host}`;
+  } catch {
+    return DEFAULT_SITE_URL;
+  }
+}
+
 /** Canonical public origin (no trailing slash). */
 export function getSiteUrl(): string {
   const raw =
     process.env.NEXT_PUBLIC_SITE_URL?.trim() ||
     process.env.NEXT_PUBLIC_APP_URL?.trim() ||
     DEFAULT_SITE_URL;
-  return raw.replace(/\/+$/, "");
+  return normalizeSiteUrl(raw);
+}
+
+/** Safe for Next.js metadataBase — never throws on bad env values. */
+export function getMetadataBase(): URL {
+  return new URL(getSiteUrl());
 }
 
 export const siteName = "DigiSales.ai";
@@ -72,7 +96,7 @@ export function createPageMetadata({
 }
 
 export const rootMetadata: Metadata = {
-  metadataBase: new URL(getSiteUrl()),
+  metadataBase: getMetadataBase(),
   title: {
     default: defaultTitle,
     template: `%s | ${siteName}`,

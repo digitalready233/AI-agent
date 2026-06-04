@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Outfit, Syne } from "next/font/google";
+import { Toaster } from "sonner";
 import { CookieConsentBanner } from "@/components/cookie-consent-banner";
 import { OrganizationJsonLd } from "@/components/seo/organization-json-ld";
 import { rootMetadata } from "@/lib/seo/site";
@@ -43,6 +44,7 @@ export default function RootLayout({
         <OrganizationJsonLd />
         {children}
         <CookieConsentBanner />
+        <Toaster theme="dark" position="top-right" richColors closeButton />
       </body>
     </html>
   );
