@@ -22,7 +22,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const { organization } = await requireSession();
+  const { organization, profile } = await requireSession();
   const parsed = agentFieldsSchema.safeParse(await req.json());
   if (!parsed.success) {
     return Response.json(
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
 
   const d = parsed.data;
   try {
-    await assertCanCreateAgent(organization.id);
+    await assertCanCreateAgent(organization.id, profile.role);
   } catch (err) {
     return Response.json(
       { error: err instanceof Error ? err.message : "Agent limit reached" },

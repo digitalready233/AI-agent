@@ -33,7 +33,9 @@ export function LoginForm() {
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { email: "admin@digitalreadyghana.com", password: "demo1234" },
+    defaultValues: demoMode
+      ? { email: "admin@digitalreadyghana.com", password: "demo1234" }
+      : { email: "", password: "" },
   });
 
   useEffect(() => {

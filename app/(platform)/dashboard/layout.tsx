@@ -23,7 +23,7 @@ export default async function DashboardLayout({
       userRole={session.profile.role}
       liveAgentHref={liveAgentHref}
     >
-      <BillingGate billing={settings.billing} />
+      <BillingGate billing={settings.billing} role={session.profile.role} />
       {children}
     </DashboardShell>
   );

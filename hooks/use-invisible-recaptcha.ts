@@ -51,7 +51,7 @@ export function useInvisibleRecaptcha() {
   useEffect(() => {
     if (!enabled) return;
     let cancelled = false;
-    loadRecaptchaScript(siteKey)
+    void loadRecaptchaScript(siteKey)
       .then(() => {
         if (!cancelled) setReady(true);
       })
