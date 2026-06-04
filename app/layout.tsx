@@ -22,6 +22,13 @@ export const metadata: Metadata = {
   title: "DigiSales.ai — Premium AI Sales & Qualification",
   description:
     "Always-on discovery, ReadyBot qualification, live staff handoff, and embeddable chat for growth brands in Ghana and beyond.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "32x32" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({
