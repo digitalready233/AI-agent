@@ -1,4 +1,5 @@
-import { createClient, type SupabaseClientOptions } from "@supabase/supabase-js";
+import { createClient } from "@supabase/supabase-js";
+import type { WebSocketLikeConstructor } from "@supabase/realtime-js";
 import WebSocket from "ws";
 
 /** Service role — server-only. Never import in client components. */
@@ -9,14 +10,15 @@ export function createAdminClient() {
     throw new Error("SUPABASE_SERVICE_ROLE_KEY and NEXT_PUBLIC_SUPABASE_URL required.");
   }
 
-  const options: SupabaseClientOptions = {
-    auth: { autoRefreshToken: false, persistSession: false },
-  };
-
   // Node 20 on VPS has no native WebSocket; realtime-js requires `ws` as transport.
-  if (typeof globalThis.WebSocket === "undefined") {
-    options.realtime = { transport: WebSocket };
-  }
-
-  return createClient(url, key, options);
+  return createClient(url, key, {
+    auth: { autoRefreshToken: false, persistSession: false },
+    ...(typeof globalThis.WebSocket === "undefined"
+      ? {
+          realtime: {
+            transport: WebSocket as unknown as WebSocketLikeConstructor,
+          },
+        }
+      : {}),
+  });
 }
