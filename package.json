@@ -20,7 +20,9 @@
     "voice:ws": "npx tsx scripts/voice-media-ws.ts",
     "demo:livekit-ai-bridge": "npx tsx workers/livekit-ai-demo-agent.ts",
     "worker:livekit-ai": "npx tsx workers/livekit-ai-demo-agent.ts",
-    "bootstrap:admin": "npx tsx scripts/bootstrap-platform-admin.ts"
+    "bootstrap:admin": "npx tsx scripts/bootstrap-platform-admin.ts",
+    "reset:production-data": "npx tsx scripts/reset-production-data.ts",
+    "restore:readybot-agent": "npx tsx scripts/restore-readybot-agent.ts"
   },
   "dependencies": {
     "@ai-sdk/groq": "^1.2.9",
