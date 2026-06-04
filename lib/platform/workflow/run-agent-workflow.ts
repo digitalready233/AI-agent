@@ -256,23 +256,59 @@ export async function runAgentWorkflow(
     handoffRequired &&
     settings.notifications.events.human_handoff_required !== false
   ) {
+    const appOrigin =
+      process.env.NEXT_PUBLIC_APP_URL?.trim() || "http://localhost:3000";
+    const conversationUrl = `${appOrigin.replace(/\/$/, "")}/dashboard/conversations/${conversationId}`;
+    const contactParts = [
+      lead.full_name ?? conversation.customer_name,
+      lead.email ?? conversation.customer_email,
+      lead.phone ?? conversation.customer_phone,
+    ].filter(Boolean);
+    const contactLine =
+      contactParts.length > 0 ? contactParts.join(" · ") : "Contact not captured yet";
+
     await saveNotification({
       id: crypto.randomUUID(),
       organization_id: organizationId,
       type: "human_handoff",
       title: "Human handoff required",
-      message: `${lead.full_name ?? "A customer"} needs attention (${analysis.detected_intent.replace(/_/g, " ")}). ${analysis.conversation_summary}`,
+      message: `${lead.full_name ?? "A customer"} — ${contactLine}. ${analysis.detected_intent.replace(/_/g, " ")}: ${analysis.conversation_summary}`,
       status: "unread",
       metadata: {
+        link: conversationUrl,
         conversation_id: conversationId,
         lead_id: lead.id,
         agent_id: agentId,
         lead_category: leadCategory,
         department: settings.human_handoff.default_department,
-        channel: settings.human_handoff.notification_channel,
+        channel: channel || conversation.channel,
+        customer_name: lead.full_name ?? conversation.customer_name,
+        customer_email: lead.email ?? conversation.customer_email,
+        customer_phone: lead.phone ?? conversation.customer_phone,
+        business_name: lead.business_name,
       },
       created_at: now,
     });
+
+    const { notifyPlatformHumanHandoff } = await import(
+      "@/lib/integrations/notify"
+    );
+    const notifyChannels = settings.notifications.channels;
+    if (notifyChannels.email || notifyChannels.slack) {
+      void notifyPlatformHumanHandoff({
+        customerName: lead.full_name ?? conversation.customer_name ?? null,
+        email: lead.email ?? conversation.customer_email ?? null,
+        phone: lead.phone ?? conversation.customer_phone ?? null,
+        businessName: lead.business_name ?? null,
+        channel: channel || conversation.channel,
+        intent: analysis.detected_intent,
+        summary: analysis.conversation_summary,
+        conversationId,
+        leadId: lead.id,
+        leadCategory,
+        conversationUrl,
+      });
+    }
   }
 
   if (

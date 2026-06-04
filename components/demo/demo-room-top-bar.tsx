@@ -18,6 +18,11 @@ export function DemoRoomTopBar({
   handoffActive,
   demoPathTitle,
   leadScore,
+  leadCategory,
+  buyingIntent,
+  objectionsCount,
+  bookingReady,
+  humanCloserStatus,
 }: {
   title?: string | null;
   productName?: string | null;
@@ -31,6 +36,11 @@ export function DemoRoomTopBar({
   handoffActive?: boolean;
   demoPathTitle?: string | null;
   leadScore?: number | null;
+  leadCategory?: string | null;
+  buyingIntent?: string | null;
+  objectionsCount?: number;
+  bookingReady?: boolean;
+  humanCloserStatus?: string | null;
 }) {
   const stageLabel = formatDemoStageLabel(currentStage);
 
@@ -75,9 +85,27 @@ export function DemoRoomTopBar({
               {leadScore != null && (
                 <MetricPill label="Score" value={`${leadScore}/12`} />
               )}
+              {leadCategory && (
+                <MetricPill label="Intent band" value={leadCategory} />
+              )}
+              {buyingIntent && (
+                <MetricPill label="Buying intent" value={buyingIntent} highlight />
+              )}
+              {objectionsCount != null && objectionsCount > 0 && (
+                <MetricPill label="Objections" value={String(objectionsCount)} />
+              )}
+              {bookingReady && (
+                <MetricPill label="Booking" value="Ready" highlight />
+              )}
+              {humanCloserStatus && humanCloserStatus !== "none" && (
+                <MetricPill
+                  label="Human closer"
+                  value={humanCloserStatus.replace(/_/g, " ")}
+                />
+              )}
               {handoffActive && (
                 <Badge variant="destructive" className="text-[10px]">
-                  Handoff
+                  Handoff active
                 </Badge>
               )}
               {staffMode && (

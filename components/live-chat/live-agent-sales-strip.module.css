@@ -1,0 +1,60 @@
+.strip {
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.65rem;
+  padding: 0.55rem 1rem;
+  border-bottom: 1px solid rgba(51, 65, 85, 0.45);
+  background: rgba(15, 23, 42, 0.65);
+}
+
+.label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(34, 211, 238, 0.85);
+  margin-right: 0.25rem;
+}
+
+.chip {
+  display: inline-flex;
+  flex-direction: column;
+  padding: 0.2rem 0.55rem;
+  border-radius: 8px;
+  border: 1px solid rgba(51, 65, 85, 0.55);
+  background: rgba(30, 41, 59, 0.5);
+}
+
+.chipHighlight {
+  border-color: rgba(34, 211, 238, 0.35);
+  background: rgba(34, 211, 238, 0.08);
+}
+
+.chipLabel {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(148, 163, 184, 0.9);
+}
+
+.chipValue {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #e2e8f0;
+  text-transform: capitalize;
+}
+
+.next {
+  flex: 1 1 100%;
+  margin: 0.15rem 0 0;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: rgba(203, 213, 225, 0.9);
+}
+
+.nextLabel {
+  color: rgba(34, 211, 238, 0.9);
+  font-weight: 600;
+}

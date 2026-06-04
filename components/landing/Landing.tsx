@@ -24,13 +24,14 @@ import { loginUrl } from "@/lib/auth/login-url";
 import { LandingPricing } from "@/components/landing/landing-pricing";
 import { LandingTestimonials } from "@/components/landing/landing-testimonials";
 import { RoiCalculator } from "@/components/landing/roi-calculator";
+import { LandingPlatformProof } from "@/components/landing/landing-platform-proof";
 import styles from "./landing.module.css";
 
 const KEY_CAPABILITIES = [
   {
     icon: Phone,
     title: "Calls & scheduling",
-    body: "Agents dial by phone or join Zoom — qualify leads, capture BANT, and book meetings on your calendar.",
+    body: "Voice outbound and scheduling integrations (beta) — qualify leads, capture BANT, and book on your calendar.",
   },
   {
     icon: MonitorPlay,
@@ -188,8 +189,10 @@ const INTEGRATIONS = [
 ] as const;
 
 const NAV_LINKS = [
+  { href: "#workflow", label: "AI workflow" },
   { href: "#how-it-works", label: "How it works" },
   { href: "#capabilities", label: "Capabilities" },
+  { href: "#platform-proof", label: "Platform" },
   { href: "#roi", label: "ROI" },
   { href: "#pricing", label: "Pricing" },
   { href: "#faq", label: "FAQ" },
@@ -206,8 +209,8 @@ export function Landing() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const booking = process.env.NEXT_PUBLIC_BOOKING_URL?.trim() || "";
   const company = process.env.NEXT_PUBLIC_COMPANY_NAME ?? "Digital Ready Ltd";
+  const bookDemoHref = "/demo";
   const tagline =
     process.env.NEXT_PUBLIC_COMPANY_TAGLINE ??
     "Digital marketing, branding & business growth";
@@ -218,7 +221,6 @@ export function Landing() {
   const workspaceHref = loginUrl("/dashboard");
   const knowledgeHref = loginUrl("/dashboard/knowledge");
   const trialHref = loginUrl("/dashboard/billing");
-  const demoCtaHref = booking || trialHref;
 
   return (
     <div className={styles.page}>
@@ -246,22 +248,11 @@ export function Landing() {
           <Link href={loginUrl()} className={styles.linkMuted}>
             Sign in
           </Link>
-          {booking ? (
-            <a
-              href={booking}
-              className={styles.btnSecondary}
-              target="_blank"
-              rel="noreferrer"
-            >
-              Book AI agent demo
-            </a>
-          ) : (
-            <Link href={trialHref} className={styles.btnSecondary}>
-              Start free trial
-            </Link>
-          )}
+          <Link href={bookDemoHref} className={styles.btnSecondary}>
+            Book AI agent demo
+          </Link>
           <Link href={liveAgentHref} className={styles.btnPrimary}>
-            Try live chat
+            Talk to AI agent
           </Link>
           <button
             type="button"
@@ -286,7 +277,7 @@ export function Landing() {
             Sign in
           </Link>
           <Link href={liveAgentHref} onClick={() => setMenuOpen(false)}>
-            Try live chat
+            Talk to AI agent
           </Link>
         </nav>
       ) : null}
@@ -312,7 +303,7 @@ export function Landing() {
               misleads.
             </p>
             <div className={styles.heroCtas}>
-              <Link href={demoCtaHref} className={styles.btnPrimaryLg}>
+              <Link href={bookDemoHref} className={styles.btnPrimaryLg}>
                 Book your AI agent demo
                 <ArrowRight size={18} aria-hidden />
               </Link>
@@ -320,11 +311,11 @@ export function Landing() {
                 <StartAiDemoButton
                   agentId={demoAgentId}
                   className={styles.btnGhostLg}
-                  label="Try live chat"
+                  label="Talk to AI agent"
                 />
               ) : (
                 <Link href={liveAgentHref} className={styles.btnGhostLg}>
-                  Try live chat
+                  Talk to AI agent
                 </Link>
               )}
             </div>
@@ -424,9 +415,9 @@ export function Landing() {
       <section className={styles.statement}>
         <div className={styles.statementInner}>
           <p className={`${styles.statementQuote} font-display`}>
-            “SalesCloser-grade automation — without the chatbot that guesses. Describe
-            your agent, upload FAQs, deploy on your site, and let AI qualify globally
-            in real time.”
+            “Enterprise-grade AI sales automation — discovery, demos, qualification,
+            and human handoff in one workflow. Describe your agent, upload FAQs,
+            deploy on your site, and let AI qualify buyers globally in real time.”
           </p>
           <p className={styles.statementMeta}>
             Built for {company} · Adenta, Accra · {tagline}
@@ -519,7 +510,7 @@ export function Landing() {
           <article className={styles.compareCard}>
             <p className={styles.compareEyebrow}>The old way</p>
             <h3 className={`${styles.compareTitle} font-display`}>
-              Generic chat widget
+              Generic support chat
             </h3>
             <ul className={styles.compareList}>
               {[
@@ -537,7 +528,7 @@ export function Landing() {
           <article className={styles.compareCardHighlight}>
             <p className={styles.compareEyebrowGold}>DigiSales.ai</p>
             <h3 className={`${styles.compareTitle} font-display`}>
-              SalesCloser-grade closer
+              AI sales agent platform
             </h3>
             <ul className={styles.compareList}>
               {[
@@ -552,7 +543,7 @@ export function Landing() {
               ))}
             </ul>
             <Link href={liveAgentHref} className={styles.compareCta}>
-              See it live
+              Start AI qualification
               <ArrowRight size={16} aria-hidden />
             </Link>
           </article>
@@ -570,7 +561,7 @@ export function Landing() {
             access unlocks after trial via secure Paystack checkout.
           </p>
           <div className={styles.heroCtas} style={{ justifyContent: "center", marginTop: "1.5rem" }}>
-            <Link href={demoCtaHref} className={styles.btnPrimaryLg}>
+            <Link href={bookDemoHref} className={styles.btnPrimaryLg}>
               Book your AI agent demo
             </Link>
             <Link href={trialHref} className={styles.btnGhostLg}>
@@ -580,6 +571,7 @@ export function Landing() {
         </div>
       </section>
 
+      <LandingPlatformProof />
       <RoiCalculator />
       <LandingTestimonials />
       <LandingPricing />
@@ -658,7 +650,7 @@ export function Landing() {
             for full access.
           </p>
           <div className={styles.finalCtaActions}>
-            <Link href={demoCtaHref} className={styles.btnPrimaryLg}>
+            <Link href={bookDemoHref} className={styles.btnPrimaryLg}>
               Book your AI agent demo
               <ArrowRight size={18} aria-hidden />
             </Link>
@@ -706,7 +698,7 @@ export function Landing() {
           </div>
           <div className={styles.footerCol}>
             <h4>Product</h4>
-            <Link href={liveAgentHref}>Live chat</Link>
+            <Link href={liveAgentHref}>AI qualification</Link>
             <a href="/embed" target="_blank" rel="noreferrer">
               Embed
             </a>
@@ -716,7 +708,7 @@ export function Landing() {
           </div>
           <div className={styles.footerCol}>
             <h4>Company</h4>
-            <Link href={demoCtaHref}>Book AI agent demo</Link>
+            <Link href={bookDemoHref}>Book AI agent demo</Link>
             {/* <Link href="/voice">Voice</Link> */}
             <Link href="/meet">Meet</Link>
             <Link href={loginUrl()}>Sign in</Link>

@@ -86,6 +86,18 @@ export function NotificationBell() {
                   typeof n.metadata?.conversation_id === "string"
                     ? n.metadata.conversation_id
                     : null;
+                const leadId =
+                  typeof n.metadata?.lead_id === "string" ? n.metadata.lead_id : null;
+                const conversationHref = convId
+                  ? `/dashboard/conversations/${convId}`
+                  : null;
+                const contactHint = [
+                  n.metadata?.customer_name,
+                  n.metadata?.customer_email,
+                  n.metadata?.customer_phone,
+                ]
+                  .filter((v): v is string => typeof v === "string" && v.length > 0)
+                  .join(" · ");
                 return (
                   <div
                     key={n.id}
@@ -94,11 +106,14 @@ export function NotificationBell() {
                     }`}
                   >
                     <p className="font-medium text-slate-100">{n.title}</p>
+                    {contactHint ? (
+                      <p className="mt-1 text-xs text-amber-200/80">{contactHint}</p>
+                    ) : null}
                     <p className="mt-1 line-clamp-2 text-xs text-slate-400">{n.message}</p>
-                    <div className="mt-2 flex gap-2">
-                      {convId && (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {conversationHref && (
                         <Link
-                          href={`/dashboard/conversations/${convId}`}
+                          href={conversationHref}
                           className="text-xs text-cyan-400 hover:underline"
                           onClick={() => {
                             if (n.status !== "read") markRead(n.id);
@@ -106,6 +121,18 @@ export function NotificationBell() {
                           }}
                         >
                           View conversation
+                        </Link>
+                      )}
+                      {leadId && (
+                        <Link
+                          href={`/dashboard/leads`}
+                          className="text-xs text-slate-400 hover:underline"
+                          onClick={() => {
+                            if (n.status !== "read") markRead(n.id);
+                            setOpen(false);
+                          }}
+                        >
+                          Leads
                         </Link>
                       )}
                       {n.status !== "read" && (

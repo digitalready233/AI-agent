@@ -1,4 +1,5 @@
 import { brand, type Channel } from "./config";
+import { LIVE_AGENT_QUALIFICATION_WELCOME } from "./copy/public-messaging";
 
 export type GreetingVariant = "standard" | "sales";
 
@@ -12,14 +13,17 @@ export function getFirstMessage(
     return `Hello, welcome to ${company}. I'm here to help you quickly. Are you looking for a service, making an enquiry, requesting support, or would you like to speak with our team?`;
   }
 
-  const salesGreeting = `Hello, welcome to ${company}. I can help you find the right solution, answer your questions, and connect you with our team. What would you like help with today?`;
+  const salesGreeting = LIVE_AGENT_QUALIFICATION_WELCOME.replace(
+    "DigiSales.ai",
+    company.includes("DigiSales") ? "DigiSales.ai" : company
+  );
 
   if (channel === "whatsapp") {
-    return `${salesGreeting}\n\nReply anytime — I'll guide you step by step.`;
+    return `${salesGreeting}\n\nReply anytime — I'll qualify step by step and book or hand off when needed.`;
   }
 
   if (channel === "voice") {
-    return `Hello, welcome to ${company}. I can help with services, enquiries, or support. What would you like help with today?`;
+    return `Welcome to ${company}. I'm your AI sales agent — I can qualify your need, answer from our knowledge base, and route you to a human closer when appropriate. What are you looking to solve today?`;
   }
 
   return salesGreeting;

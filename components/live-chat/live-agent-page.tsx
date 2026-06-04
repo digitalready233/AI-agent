@@ -49,11 +49,12 @@ function LiveAgentContent({
   return (
     <main className={styles.shell}>
       <div className={styles.pageIntro}>
-        <p className={styles.pageEyebrow}>Live support</p>
-        <h1 className={styles.pageTitle}>Chat with our team</h1>
+        <p className={styles.pageEyebrow}>AI qualification session</p>
+        <h1 className={styles.pageTitle}>Talk to our AI sales agent</h1>
         <p className={styles.pageSubtitle}>
-          Ask about services, pricing, or book a consultation. Our AI assistant is
-          available 24/7 and can connect you with a human when needed.
+          Your agent discovers needs, qualifies budget and timeline, recommends the
+          next step, books a consultation, and notifies a human closer when the deal
+          needs a person — not a generic support widget.
         </p>
       </div>
       <div className={styles.chatFrame}>

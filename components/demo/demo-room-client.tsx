@@ -1620,6 +1620,11 @@ export function DemoRoomClient({ sessionId }: { sessionId: string }) {
         }
         demoPathTitle={session?.demo_path_title}
         leadScore={session?.lead_score}
+        leadCategory={leadDetail?.lead_category ?? session?.lead_category}
+        buyingIntent={detectedIntentLabel}
+        objectionsCount={session?.objections?.length ?? 0}
+        bookingReady={Boolean(session?.booking_recommended)}
+        humanCloserStatus={session?.handoff_status}
       />
       {handoffBannerText && joined && (
         <div className="border-b border-amber-500/30 bg-amber-500/10 px-4 py-2 text-center text-sm text-amber-100">

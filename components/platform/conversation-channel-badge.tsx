@@ -16,7 +16,7 @@ export function ConversationChannelBadge({
   if (channel === "website" || channel === "live_agent") {
     return (
       <Badge variant="outline" className="text-[10px] capitalize">
-        {channel === "live_agent" ? "Live chat" : "Website"}
+        {channel === "live_agent" ? "AI agent" : "Website"}
       </Badge>
     );
   }

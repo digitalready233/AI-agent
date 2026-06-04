@@ -16,6 +16,11 @@ import {
   READYBOT_BUDGET_QUICK_REPLIES,
   READYBOT_SERVICE_QUICK_REPLIES,
 } from "@/lib/platform/playbooks/digital-ready-readybot";
+import {
+  LIVE_AGENT_DEFAULT_QUICK_PROMPTS,
+  LIVE_AGENT_QUALIFICATION_WELCOME,
+} from "@/lib/copy/public-messaging";
+import { LiveAgentSalesStrip } from "@/components/live-chat/live-agent-sales-strip";
 import type { VisitorChatMessage } from "@/lib/platform/visitor-chat";
 import { LiveAgentBookingPanel } from "./live-agent-booking-panel";
 import styles from "./live-agent-chat.module.css";
@@ -48,6 +53,7 @@ type PlatformChatResponse = {
   detectedIntent?: string;
   leadCategory?: string;
   conversationStage?: string;
+  recommendedNextAction?: string;
   error?: string;
   code?: string;
 };
@@ -112,12 +118,7 @@ function historyRowsToUi(
   }));
 }
 
-const DEFAULT_QUICK_PROMPTS = [
-  "I'd like to learn about your services",
-  "What are your pricing options?",
-  "Book a consultation",
-  "I'd like to speak with someone on your team",
-];
+const DEFAULT_QUICK_PROMPTS = [...LIVE_AGENT_DEFAULT_QUICK_PROMPTS];
 
 function sessionStorageKey(agentId: string): string {
   return `digisales_live_session_${agentId}`;
@@ -160,6 +161,11 @@ export function LiveAgentChat({
   const [showBooking, setShowBooking] = useState(false);
   const [conversationId, setConversationId] = useState<string | undefined>();
   const [conversationStage, setConversationStage] = useState<string | undefined>();
+  const [detectedIntent, setDetectedIntent] = useState<string | undefined>();
+  const [leadCategory, setLeadCategory] = useState<string | undefined>();
+  const [recommendedNextAction, setRecommendedNextAction] = useState<
+    string | undefined
+  >();
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const quickPrompts = useMemo(
@@ -279,9 +285,9 @@ export function LiveAgentChat({
               id: "welcome",
               role: "assistant",
               content:
-                agentPayload.welcomeMessage ??
-                historyPayload.welcomeMessage ??
-                "Hi! How are you doing? What's your name, please — and how can I help you today?",
+                agentPayload.welcomeMessage?.trim() ||
+                historyPayload.welcomeMessage?.trim() ||
+                LIVE_AGENT_QUALIFICATION_WELCOME,
             },
           ]);
         }
@@ -358,6 +364,12 @@ export function LiveAgentChat({
         if (data.conversationStage) {
           setConversationStage(data.conversationStage);
         }
+        if (data.detectedIntent) {
+          setDetectedIntent(data.detectedIntent);
+        }
+        if (data.leadCategory) {
+          setLeadCategory(data.leadCategory);
+        }
 
         if (data.staffHandling) {
           setHandoffActive(true);
@@ -399,6 +411,12 @@ export function LiveAgentChat({
           void refreshHandoff();
         } else if (data.suggestBooking || data.bookingRecommended) {
           setShowBooking(true);
+        }
+
+        if (data.recommendedNextAction) {
+          setRecommendedNextAction(data.recommendedNextAction);
+        } else if (data.reply && data.leadCategory === "hot") {
+          setRecommendedNextAction("Book consultation or assign human closer");
         }
       } catch (err) {
         setMessages((prev) => [
@@ -453,6 +471,16 @@ export function LiveAgentChat({
         />
       </header>
 
+      <LiveAgentSalesStrip
+        stage={conversationStage}
+        intent={detectedIntent}
+        leadCategory={leadCategory}
+        nextAction={recommendedNextAction}
+        handoffActive={handoffActive}
+        staffJoined={staffJoined}
+        bookingReady={showBooking}
+      />
+
       <ChatMessages
         scrollRef={scrollRef}
         messages={messages}
@@ -494,8 +522,8 @@ export function LiveAgentChat({
           onChange={(e) => setInput(e.target.value)}
           placeholder={
             handoffActive
-              ? "Message our team…"
-              : "Type your message…"
+              ? "Message your human closer…"
+              : "Tell the AI agent about your goals…"
           }
           disabled={isLoading}
           autoComplete="off"

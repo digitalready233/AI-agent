@@ -9,8 +9,8 @@ type PageProps = {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { agentId } = await params;
   return {
-    title: "Live chat",
-    description: `Chat with agent ${agentId}`,
+    title: "AI sales agent — live qualification",
+    description: `Qualify with AI agent ${agentId} — discovery, booking, and human handoff`,
   };
 }
 

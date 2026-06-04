@@ -1,6 +1,11 @@
 import { notFound } from "next/navigation";
 import { requireSession } from "@/lib/platform/auth";
-import { getConversation, listMessages, listProfiles } from "@/lib/platform/data";
+import {
+  getConversation,
+  getLead,
+  listMessages,
+  listProfiles,
+} from "@/lib/platform/data";
 import { can } from "@/lib/platform/rbac";
 import { PageHeader } from "@/components/platform/page-header";
 import { StaffConversationInbox } from "@/components/platform/staff-conversation-inbox";
@@ -19,9 +24,12 @@ export default async function ConversationDetailPage({
     notFound();
   }
 
-  const [messages, team] = await Promise.all([
+  const [messages, team, lead] = await Promise.all([
     listMessages(id),
     listProfiles(session.organization.id),
+    conversation.lead_id
+      ? getLead(conversation.lead_id)
+      : Promise.resolve(null),
   ]);
 
   const canManage = can(session.profile.role, "conversations.manage");
@@ -53,6 +61,45 @@ export default async function ConversationDetailPage({
           </Badge>
         }
       />
+
+      {(lead ||
+        conversation.customer_email ||
+        conversation.customer_phone ||
+        conversation.customer_name) && (
+        <div className="mb-4 rounded-xl border border-amber-500/25 bg-amber-500/5 px-4 py-3 text-sm text-slate-200">
+          <p className="font-medium text-amber-100/90">Visitor contact</p>
+          <ul className="mt-2 space-y-1 text-slate-300">
+            {(lead?.full_name ?? conversation.customer_name) && (
+              <li>
+                Name: {lead?.full_name ?? conversation.customer_name}
+              </li>
+            )}
+            {lead?.business_name && <li>Business: {lead.business_name}</li>}
+            {(lead?.email ?? conversation.customer_email) && (
+              <li>
+                Email:{" "}
+                <a
+                  className="text-cyan-400 hover:underline"
+                  href={`mailto:${lead?.email ?? conversation.customer_email}`}
+                >
+                  {lead?.email ?? conversation.customer_email}
+                </a>
+              </li>
+            )}
+            {(lead?.phone ?? conversation.customer_phone) && (
+              <li>
+                Phone:{" "}
+                <a
+                  className="text-cyan-400 hover:underline"
+                  href={`tel:${lead?.phone ?? conversation.customer_phone}`}
+                >
+                  {lead?.phone ?? conversation.customer_phone}
+                </a>
+              </li>
+            )}
+          </ul>
+        </div>
+      )}
 
       <StaffConversationInbox
         conversation={conversation}
