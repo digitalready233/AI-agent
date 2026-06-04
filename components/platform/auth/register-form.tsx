@@ -13,6 +13,12 @@ import { isRecaptchaClientEnabled } from "@/lib/auth/recaptcha";
 import { useInvisibleRecaptcha } from "@/hooks/use-invisible-recaptcha";
 import { GoogleSignInButton } from "@/components/platform/auth/google-sign-in-button";
 import { OAuthDivider } from "@/components/platform/auth/oauth-divider";
+import {
+  showAuthError,
+  showAuthLoading,
+  showAuthSuccess,
+} from "@/lib/auth/auth-toast";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 const schema = z.object({
@@ -33,6 +39,7 @@ export function RegisterForm() {
 
   async function onSubmit(values: FormData) {
     setLoading(true);
+    showAuthLoading("Creating your account…");
     try {
       if (demoMode) {
         toast.info("Demo mode: use Sign in with demo credentials.");
@@ -51,10 +58,10 @@ export function RegisterForm() {
         throw new Error(d.error ?? "Registration failed");
       }
       const data = await res.json();
-      toast.success(data.message ?? "Check your email to confirm your account.");
+      showAuthSuccess(data.message ?? "Check your email to confirm your account.");
       router.push("/auth/login");
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Registration failed");
+      showAuthError(e instanceof Error ? e.message : "Registration failed");
     } finally {
       setLoading(false);
     }
@@ -105,8 +112,15 @@ export function RegisterForm() {
             .
           </p>
         )}
-        <Button type="submit" className="h-11 w-full rounded-xl mt-2" disabled={loading}>
-          {loading ? "Creating…" : "Create account"}
+        <Button type="submit" className="h-11 w-full rounded-xl mt-2 gap-2" disabled={loading}>
+          {loading ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+              Creating…
+            </>
+          ) : (
+            "Create account"
+          )}
         </Button>
       </form>
     </div>

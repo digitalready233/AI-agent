@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { PlatformSidebar } from "@/components/platform/sidebar";
 import { PlatformHeader } from "@/components/platform/header";
+import { useSessionInactivityLogout } from "@/hooks/use-session-inactivity-logout";
 import { Toaster } from "sonner";
 import type { UserRole } from "@/lib/platform/types";
 
@@ -22,6 +23,8 @@ export function DashboardShell({
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
+
+  useSessionInactivityLogout(true);
 
   useEffect(() => {
     setMobileOpen(false);

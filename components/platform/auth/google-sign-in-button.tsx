@@ -7,6 +7,8 @@ import { isDemoAuthMode } from "@/lib/auth/demo-mode";
 import { isRecaptchaClientEnabled } from "@/lib/auth/recaptcha";
 import { useInvisibleRecaptcha } from "@/hooks/use-invisible-recaptcha";
 import { createClient } from "@/lib/supabase/client";
+import { showAuthError, showAuthLoading } from "@/lib/auth/auth-toast";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 function GoogleIcon() {
@@ -50,6 +52,7 @@ export function GoogleSignInButton({ label = "Continue with Google" }: Props) {
     }
 
     setLoading(true);
+    showAuthLoading("Connecting to Google…");
     try {
       if (recaptchaEnabled && isRecaptchaClientEnabled()) {
         const token = await execute("google_oauth");
@@ -77,8 +80,9 @@ export function GoogleSignInButton({ label = "Continue with Google" }: Props) {
         },
       });
       if (error) throw error;
+      /* OAuth redirect — keep loading toast until navigation */
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Google sign-in failed");
+      showAuthError(e instanceof Error ? e.message : "Google sign-in failed");
       setLoading(false);
     }
   }
@@ -91,7 +95,11 @@ export function GoogleSignInButton({ label = "Continue with Google" }: Props) {
       disabled={loading || demoMode}
       onClick={() => void signInWithGoogle()}
     >
-      <GoogleIcon />
+      {loading ? (
+        <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+      ) : (
+        <GoogleIcon />
+      )}
       {loading ? "Redirecting…" : label}
     </Button>
   );

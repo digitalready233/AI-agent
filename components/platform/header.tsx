@@ -1,9 +1,13 @@
 "use client";
 
-import { LogOut, Menu } from "lucide-react";
+import { useState } from "react";
+import { LogOut, Loader2, Menu } from "lucide-react";
 import { NotificationBellLazy } from "@/components/platform/notification-bell-lazy";
 import { Button } from "@/components/ui/button";
+import { signOutClient } from "@/lib/auth/client-logout";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+
 export function PlatformHeader({
   userName,
   onMenuClick,
@@ -12,11 +16,18 @@ export function PlatformHeader({
   onMenuClick?: () => void;
 }) {
   const router = useRouter();
+  const [signingOut, setSigningOut] = useState(false);
 
   async function logout() {
-    await fetch("/api/auth/signout", { method: "POST" });
-    router.push("/auth/login");
-    router.refresh();
+    if (signingOut) return;
+    setSigningOut(true);
+    toast.loading("Signing out…", { id: "sign-out" });
+    try {
+      await signOutClient(router);
+    } catch {
+      toast.error("Could not sign out. Try again.", { id: "sign-out" });
+      setSigningOut(false);
+    }
   }
 
   return (
@@ -44,11 +55,18 @@ export function PlatformHeader({
         <Button
           variant="outline"
           size="sm"
-          onClick={logout}
+          onClick={() => void logout()}
+          disabled={signingOut}
           className="h-10 rounded-xl px-4 gap-2 border-slate-700/60"
         >
-          <LogOut className="h-4 w-4" />
-          <span className="hidden sm:inline">Sign out</span>
+          {signingOut ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <LogOut className="h-4 w-4" />
+          )}
+          <span className="hidden sm:inline">
+            {signingOut ? "Signing out…" : "Sign out"}
+          </span>
         </Button>
       </div>
     </header>

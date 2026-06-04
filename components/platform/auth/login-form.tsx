@@ -13,6 +13,13 @@ import { isRecaptchaClientEnabled } from "@/lib/auth/recaptcha";
 import { useInvisibleRecaptcha } from "@/hooks/use-invisible-recaptcha";
 import { GoogleSignInButton } from "@/components/platform/auth/google-sign-in-button";
 import { OAuthDivider } from "@/components/platform/auth/oauth-divider";
+import {
+  showAuthError,
+  showAuthLoading,
+  showAuthSuccess,
+} from "@/lib/auth/auth-toast";
+import { touchSessionActivity } from "@/lib/auth/session-inactivity";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 const schema = z.object({
@@ -50,6 +57,7 @@ export function LoginForm() {
 
   async function onSubmit(values: FormData) {
     setLoading(true);
+    showAuthLoading("Signing in…");
     try {
       if (demoMode) {
         const recaptchaToken = await executeRecaptcha("login");
@@ -74,11 +82,12 @@ export function LoginForm() {
           throw new Error(d.error ?? "Login failed");
         }
       }
-      toast.success("Welcome back");
+      touchSessionActivity();
+      showAuthSuccess("Welcome back");
       router.push(next);
       router.refresh();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Login failed");
+      showAuthError(e instanceof Error ? e.message : "Login failed");
     } finally {
       setLoading(false);
     }
@@ -140,8 +149,19 @@ export function LoginForm() {
             .
           </p>
         )}
-        <Button type="submit" className="h-11 w-full rounded-xl text-[15px]" disabled={loading}>
-          {loading ? "Signing in…" : "Sign in"}
+        <Button
+          type="submit"
+          className="h-11 w-full rounded-xl text-[15px] gap-2"
+          disabled={loading}
+        >
+          {loading ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+              Signing in…
+            </>
+          ) : (
+            "Sign in"
+          )}
         </Button>
       </form>
     </div>
