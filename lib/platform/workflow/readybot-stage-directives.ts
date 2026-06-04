@@ -1,36 +1,73 @@
 import type { WorkflowStage } from "./schemas";
+import {
+  inferReadybotPipelineStep,
+  type ReadybotPipelineStep,
+} from "./readybot-stage-engine";
 
 /** Injected into workflow response generation for ReadyBot-style agents. */
 export function readybotStageDirective(
   stage: WorkflowStage,
-  missingLeadFields: string[]
+  missingLeadFields: string[],
+  extraction?: import("./schemas").WorkflowAnalysis["lead_extraction"]
 ): string {
-  const needsName = missingLeadFields.includes("name");
+  const step = extraction
+    ? inferReadybotPipelineStep(extraction)
+    : workflowStageToPipelineStep(stage);
   const missing =
     missingLeadFields.length > 0
-      ? ` Missing CRM fields: ${missingLeadFields.join(", ")} — ask for one only.`
+      ? ` Missing fields: ${missingLeadFields.join(", ")} — collect one only.`
       : "";
 
-  const map: Record<WorkflowStage, string> = {
-    greeting: needsName
-      ? "Onboarding: they were already welcomed. Reply warmly in 1 sentence, then ask for their **name** only."
-      : "Onboarding: you have their name. Greet them by name in 1 sentence, then ask **how you can help** (one question). Do not skip to growth goals yet.",
+  const map: Record<ReadybotPipelineStep, string> = {
+    onboarding: !extraction?.full_name?.trim()
+      ? "Onboarding: collect **name** only. Do not ask discovery, stack, team, or budget questions."
+      : "Onboarding: you have their name. Ask **how you can help** / what they need (one question). Do not ask growth goals, stack, team, or budget yet.",
     discovery:
-      "Discovery: answer their point in 1 sentence if needed, then ONE stack question (ads / social / web).",
-    qualification: `Qualification: ONE question — team model OR budget tier OR timeline.${missing}`,
-    recommendation:
-      "Recommend: name the best pillar in 1 sentence + 1 question. No feature dump.",
-    objection_handling:
-      "Objection: 1 sentence empathy + 1 sentence value. One follow-up question. No price quotes.",
-    booking:
-      "Close: 1 sentence summary + ask email/phone OR point to scheduler. Bold the ask only.",
-    handoff:
-      "Handoff: 1–2 sentences. Confirm contact if missing. Not human.",
+      "Discovery: ask **only one** question — their biggest **growth milestone** in the next 6 months (or new campaign / fix ads / build from scratch). Do not ask stack, team, or budget. Do not combine questions.",
+    stack:
+      "Stack: ask **exactly one** question about **Paid ads**, **Social/branding**, or **Web/ops** (pick the line that fits their need). Do not ask team or budget until they answer.",
+    team:
+      "Team: ask **only** whether they use an **in-house team plus agency**, or **full agency** management. Do not ask budget or timing until answered.",
+    budget_timing:
+      "Budget & Timing: only now — ask **one** question about budget tier (A/B/C) **or** when they want to start. **Never quote specific prices.** Do not skip to close until both budget and timeline are clear.",
     close:
-      "Close: 1 sentence thanks + 1 sentence next step only.",
+      "Close: one-sentence summary, then ask for **email and phone** OR point to the **scheduler** (one ask). Only after onboarding through budget/timing are complete.",
   };
 
-  return map[stage] ?? map.discovery;
+  if (stage === "handoff") {
+    return (
+      "Handoff: customer needs a human or is hot. Confirm contact if missing. " +
+      "Do not continue discovery questions. Not a human yourself." +
+      missing
+    );
+  }
+
+  if (stage === "objection_handling") {
+    return (
+      "Objection: one sentence empathy + one sentence value. **No price quotes.** " +
+      "One follow-up question aligned with the current pipeline step only." +
+      missing
+    );
+  }
+
+  return (map[step] ?? map.discovery) + missing;
+}
+
+function workflowStageToPipelineStep(stage: WorkflowStage): ReadybotPipelineStep {
+  switch (stage) {
+    case "greeting":
+      return "onboarding";
+    case "discovery":
+      return "discovery";
+    case "qualification":
+      return "stack";
+    case "booking":
+      return "close";
+    case "handoff":
+      return "close";
+    default:
+      return "discovery";
+  }
 }
 
 export function isReadybotStyleAgent(agent: {

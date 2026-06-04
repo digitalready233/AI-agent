@@ -44,9 +44,9 @@ export const LEAD_STATUS_LABELS: Record<LeadStatus, string> = {
 };
 
 export const CONVERSATION_STAGE_LABELS: Record<(typeof WORKFLOW_STAGES)[number], string> = {
-  greeting: "Greeting",
+  greeting: "Onboarding",
   discovery: "Discovery",
-  qualification: "Qualification",
+  qualification: "Stack / team / budget",
   recommendation: "Recommendation",
   objection_handling: "Objection handling",
   booking: "Booking",

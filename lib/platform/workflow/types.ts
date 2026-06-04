@@ -15,6 +15,8 @@ export interface RunAgentWorkflowResult {
   aiResponse: string;
   detectedIntent: WorkflowIntent;
   conversationStage: WorkflowStage;
+  /** ReadyBot pipeline step when the agent uses the staged qualification flow. */
+  readybotPipelineStep?: import("./readybot-stage-engine").ReadybotPipelineStep | null;
   leadScore: number;
   leadCategory: LeadCategory;
   leadStatus: LeadStatus;

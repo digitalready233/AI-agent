@@ -18,6 +18,13 @@ import {
   shouldDeferHandoffForBooking,
   shouldSuggestBooking,
 } from "./handoff";
+import {
+  applyReadybotStageGuard,
+  evaluateReadybotHandoff,
+  inferReadybotPipelineStep,
+  readybotBookingAllowed,
+} from "./readybot-stage-engine";
+import { isReadybotStyleAgent } from "./readybot-stage-directives";
 import { upsertLeadFromWorkflow } from "./lead-sync";
 import { workflowInputSchema, type WorkflowInput } from "./schemas";
 import { resolveLeadCategory } from "./lead-category";
@@ -112,21 +119,37 @@ export async function runAgentWorkflow(
     );
   }
 
+  const readybot = isReadybotStyleAgent(agent);
+  if (readybot) {
+    analysis = applyReadybotStageGuard(analysis, false);
+  }
+
   const scores = sumLeadScores(analysis.lead_scores, settings.lead_scoring);
   const leadCategory = resolveLeadCategory(
     analysis,
     scores.total,
     settings.lead_scoring
   );
-  const bookingEligible = shouldSuggestBooking({ analysis, leadCategory });
-  const handoffFromRules = evaluateHandoff({
-    analysis,
-    leadCategory,
-    handoffSettings: settings.human_handoff,
-  });
+  const readybotStep = readybot
+    ? inferReadybotPipelineStep(analysis.lead_extraction)
+    : null;
+  const bookingEligible = readybot
+    ? readybotBookingAllowed(readybotStep!, leadCategory) &&
+      shouldSuggestBooking({ analysis, leadCategory })
+    : shouldSuggestBooking({ analysis, leadCategory });
+  const handoffFromRules = readybot
+    ? evaluateReadybotHandoff({ analysis, leadCategory })
+    : evaluateHandoff({
+        analysis,
+        leadCategory,
+        handoffSettings: settings.human_handoff,
+      });
   const handoffRequired =
     handoffFromRules &&
     !shouldDeferHandoffForBooking({ analysis, bookingEligible });
+  if (readybot) {
+    analysis = applyReadybotStageGuard(analysis, handoffRequired);
+  }
   const suggestBooking = bookingEligible && !handoffRequired;
 
   const existingLeadForBooking = conversation.lead_id
@@ -331,6 +354,9 @@ export async function runAgentWorkflow(
     aiResponse,
     detectedIntent: analysis.detected_intent,
     conversationStage: analysis.conversation_stage,
+    readybotPipelineStep: readybot
+      ? inferReadybotPipelineStep(analysis.lead_extraction)
+      : null,
     leadScore: scores.total,
     leadCategory,
     leadStatus: lead.lead_status,

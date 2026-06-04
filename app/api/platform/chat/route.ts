@@ -190,6 +190,7 @@ export async function POST(req: Request) {
       meetingTypeKey: workflow.meetingTypeKey,
       detectedIntent: workflow.detectedIntent,
       conversationStage: workflow.conversationStage,
+      readybotPipelineStep: workflow.readybotPipelineStep ?? undefined,
       leadScore: workflow.leadScore,
       leadCategory: workflow.leadCategory,
       leadStatus: workflow.leadStatus,

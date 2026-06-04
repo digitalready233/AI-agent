@@ -1,6 +1,8 @@
 import { workflowAnalysisSchema, type WorkflowAnalysis } from "./schemas";
 import { workflowGenerateObject } from "./llm-invoke";
 import type { WorkflowRuntimeContext } from "./workflow-context";
+import { isReadybotStyleAgent } from "./readybot-stage-directives";
+import { READYBOT_ANALYZER_STAGE_RULES } from "./readybot-stage-engine";
 
 function formatHistory(
   messages: { role: "user" | "assistant"; content: string }[],
@@ -80,7 +82,8 @@ Flags:
 
 suggest_booking only when the lead is warm/hot (score ≥ warm threshold) AND qualified enough to offer scheduling — never for cold or not_qualified leads.
 
-Org scoring thresholds (for your reasoning): hot≥${scoring.hot_threshold}, warm≥${scoring.warm_threshold}, cold≥${scoring.cold_threshold} (on scaled 0–100 total).`,
+Org scoring thresholds (for your reasoning): hot≥${scoring.hot_threshold}, warm≥${scoring.warm_threshold}, cold≥${scoring.cold_threshold} (on scaled 0–100 total).
+${isReadybotStyleAgent(agent) ? `\n${READYBOT_ANALYZER_STAGE_RULES}` : ""}`,
     prompt: `Agent type: ${agent.agent_type}
 Qualification rules: ${effective.qualification_prompt || "Standard B2B qualification"}
 Lead scoring rules: ${effective.lead_scoring_rules}

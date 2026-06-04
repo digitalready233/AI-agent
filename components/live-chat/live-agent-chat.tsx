@@ -53,6 +53,13 @@ type PlatformChatResponse = {
   detectedIntent?: string;
   leadCategory?: string;
   conversationStage?: string;
+  readybotPipelineStep?:
+    | "onboarding"
+    | "discovery"
+    | "stack"
+    | "team"
+    | "budget_timing"
+    | "close";
   recommendedNextAction?: string;
   error?: string;
   code?: string;
@@ -66,12 +73,24 @@ function isReadybotAgent(meta: LiveAgentMeta | null): boolean {
 
 function quickPromptsForAgent(
   meta: LiveAgentMeta | null,
-  conversationStage?: string
+  conversationStage?: string,
+  readybotPipelineStep?: PlatformChatResponse["readybotPipelineStep"]
 ): { label: string; message: string }[] {
   if (!isReadybotAgent(meta)) {
     return DEFAULT_QUICK_PROMPTS.map((message) => ({ label: message, message }));
   }
-  if (conversationStage === "qualification") {
+  const step =
+    readybotPipelineStep ??
+    (conversationStage === "greeting"
+      ? "onboarding"
+      : conversationStage === "discovery"
+        ? "discovery"
+        : conversationStage === "qualification"
+          ? "stack"
+          : conversationStage === "booking"
+            ? "close"
+            : undefined);
+  if (step === "budget_timing" || step === "team") {
     return [
       ...READYBOT_BUDGET_QUICK_REPLIES,
       {
@@ -80,7 +99,16 @@ function quickPromptsForAgent(
       },
     ];
   }
-  if (conversationStage === "greeting" || conversationStage === "discovery") {
+  if (step === "stack" || conversationStage === "qualification") {
+    return [
+      ...READYBOT_SERVICE_QUICK_REPLIES,
+      {
+        label: "Speak to team",
+        message: "I'd like to speak with someone on your team.",
+      },
+    ];
+  }
+  if (step === "onboarding" || step === "discovery" || conversationStage === "greeting" || conversationStage === "discovery") {
     return [
       ...READYBOT_SERVICE_QUICK_REPLIES,
       {
@@ -161,6 +189,9 @@ export function LiveAgentChat({
   const [showBooking, setShowBooking] = useState(false);
   const [conversationId, setConversationId] = useState<string | undefined>();
   const [conversationStage, setConversationStage] = useState<string | undefined>();
+  const [readybotPipelineStep, setReadybotPipelineStep] = useState<
+    PlatformChatResponse["readybotPipelineStep"]
+  >();
   const [detectedIntent, setDetectedIntent] = useState<string | undefined>();
   const [leadCategory, setLeadCategory] = useState<string | undefined>();
   const [recommendedNextAction, setRecommendedNextAction] = useState<
@@ -169,8 +200,8 @@ export function LiveAgentChat({
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const quickPrompts = useMemo(
-    () => quickPromptsForAgent(meta, conversationStage),
-    [meta, conversationStage]
+    () => quickPromptsForAgent(meta, conversationStage, readybotPipelineStep),
+    [meta, conversationStage, readybotPipelineStep]
   );
 
   const handoffPollEnabled = handoffActive && Boolean(sessionId);
@@ -363,6 +394,9 @@ export function LiveAgentChat({
         }
         if (data.conversationStage) {
           setConversationStage(data.conversationStage);
+        }
+        if (data.readybotPipelineStep) {
+          setReadybotPipelineStep(data.readybotPipelineStep);
         }
         if (data.detectedIntent) {
           setDetectedIntent(data.detectedIntent);

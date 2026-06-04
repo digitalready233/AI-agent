@@ -61,7 +61,8 @@ export async function generateWorkflowResponse(params: {
     isReadybotStyleAgent(agent)
       ? readybotStageDirective(
           analysis.conversation_stage,
-          missingLeadFields(analysis.lead_extraction)
+          missingLeadFields(analysis.lead_extraction),
+          analysis.lead_extraction
         )
       : "",
     isReadybotStyleAgent(agent) ? READYBOT_RESPONSE_CONTRACT : "",
