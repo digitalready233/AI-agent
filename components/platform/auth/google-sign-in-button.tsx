@@ -7,6 +7,7 @@ import { isDemoAuthMode } from "@/lib/auth/demo-mode";
 import { isRecaptchaClientEnabled } from "@/lib/auth/recaptcha";
 import { useInvisibleRecaptcha } from "@/hooks/use-invisible-recaptcha";
 import { createClient } from "@/lib/supabase/client";
+import { safeNextPath } from "@/lib/auth/login-url";
 import { showAuthError, showAuthLoading } from "@/lib/auth/auth-toast";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -40,7 +41,7 @@ type Props = {
 
 export function GoogleSignInButton({ label = "Continue with Google" }: Props) {
   const searchParams = useSearchParams();
-  const next = searchParams.get("next") ?? "/dashboard";
+  const next = safeNextPath(searchParams.get("next"), "/dashboard");
   const [loading, setLoading] = useState(false);
   const { enabled: recaptchaEnabled, execute } = useInvisibleRecaptcha();
   const demoMode = isDemoAuthMode();

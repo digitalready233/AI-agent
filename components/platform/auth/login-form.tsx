@@ -18,6 +18,7 @@ import {
   showAuthLoading,
   showAuthSuccess,
 } from "@/lib/auth/auth-toast";
+import { safeNextPath } from "@/lib/auth/login-url";
 import { touchSessionActivity } from "@/lib/auth/session-inactivity";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -32,7 +33,7 @@ type FormData = z.infer<typeof schema>;
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams.get("next") ?? "/dashboard";
+  const next = safeNextPath(searchParams.get("next"), "/dashboard");
   const authError = searchParams.get("error");
   const [loading, setLoading] = useState(false);
   const demoMode = isDemoAuthMode();

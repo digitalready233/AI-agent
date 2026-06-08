@@ -8,6 +8,7 @@ import {
 } from "@/lib/platform/data";
 import { PageHeader } from "@/components/platform/page-header";
 import { EmptyState } from "@/components/platform/empty-state";
+import { KnowledgeImportButton } from "@/components/platform/knowledge-import-dialog";
 import {
   ReadybotKnowledgeKitCard,
   ReadybotKnowledgeSeedButton,
@@ -45,6 +46,13 @@ export default async function KnowledgePage() {
         description="Manage documents and content your agents use to answer questions."
         actions={
           <>
+            <KnowledgeImportButton
+              knowledgeBaseId={defaultKb?.id ?? null}
+              knowledgeBaseTitle={defaultKb?.title ?? null}
+              variant="outline"
+              size="default"
+              disabled={!defaultKb}
+            />
             <ReadybotKnowledgeSeedButton
               knowledgeBaseId={defaultKb?.id ?? null}
               knowledgeBaseTitle={defaultKb?.title ?? null}
@@ -103,6 +111,12 @@ export default async function KnowledgePage() {
                           Edit
                         </Link>
                       </Button>
+                      <KnowledgeImportButton
+                        knowledgeBaseId={kb.id}
+                        knowledgeBaseTitle={kb.title}
+                        variant="ghost"
+                        size="sm"
+                      />
                       <ReadybotKnowledgeSeedButton
                         knowledgeBaseId={kb.id}
                         knowledgeBaseTitle={kb.title}

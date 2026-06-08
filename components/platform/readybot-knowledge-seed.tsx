@@ -15,6 +15,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { KnowledgeImportButton } from "@/components/platform/knowledge-import-dialog";
 import { READYBOT_KB_ARTICLE_TITLES } from "@/lib/platform/readybot-kb-templates";
 
 export { READYBOT_KB_ARTICLE_TITLES };
@@ -294,6 +295,12 @@ export function ReadybotKnowledgeKitCard({
             knowledgeBaseId={defaultKnowledgeBaseId}
             knowledgeBaseTitle={knowledgeBaseTitle}
             variant="default"
+            size="sm"
+          />
+          <KnowledgeImportButton
+            knowledgeBaseId={defaultKnowledgeBaseId}
+            knowledgeBaseTitle={knowledgeBaseTitle}
+            variant="outline"
             size="sm"
           />
           <ReadybotPlaybookImportButton

@@ -3,6 +3,10 @@ import {
   inferReadybotPipelineStep,
   type ReadybotPipelineStep,
 } from "./readybot-stage-engine";
+import {
+  inferReadybotMicroStep,
+  needsDiscoveryGoalClarify,
+} from "./readybot-micro-steps";
 
 /** Injected into workflow response generation for ReadyBot-style agents. */
 export function readybotStageDirective(
@@ -13,6 +17,9 @@ export function readybotStageDirective(
   const step = extraction
     ? inferReadybotPipelineStep(extraction)
     : workflowStageToPipelineStep(stage);
+  const microStep = extraction
+    ? inferReadybotMicroStep(extraction, step)
+    : null;
   const missing =
     missingLeadFields.length > 0
       ? ` Missing fields: ${missingLeadFields.join(", ")} — collect one only.`
@@ -23,9 +30,15 @@ export function readybotStageDirective(
       ? "Onboarding: collect **name** only. Do not ask discovery, stack, team, or budget questions."
       : "Onboarding: you have their name. Ask **how you can help** / what they need (one question). Do not ask growth goals, stack, team, or budget yet.",
     discovery:
-      "Discovery: ask **only one** question — their biggest **growth milestone** in the next 6 months (or new campaign / fix ads / build from scratch). Do not ask stack, team, or budget. Do not combine questions.",
+      microStep === "goal_clarify" || needsDiscoveryGoalClarify(extraction ?? {})
+        ? "Discovery (micro-step 1): ask **only one** clarifying question — are they focused on **followers**, **engagement**, or **conversions**? Do not ask milestone, stack, team, or budget yet."
+        : "Discovery (micro-step 2): ask **only one** question — their biggest **growth milestone** in the next 6 months. Do not ask stack, team, or budget. Do not combine questions.",
     stack:
-      "Stack: ask **exactly one** question about **Paid ads**, **Social/branding**, or **Web/ops** (pick the line that fits their need). Do not ask team or budget until they answer.",
+      microStep === "stack_ads"
+        ? "Stack · **Paid ads**: ask **exactly one** question about their ads setup (running today vs starting fresh, platforms, or budget band). Do not ask social, web, team, or budget until answered."
+        : microStep === "stack_social"
+          ? "Stack · **Social/branding**: ask **exactly one** question about content, posting, or brand presence. Do not ask ads, web, team, or budget until answered."
+          : "Stack · **Web/ops**: ask **exactly one** question about website, CRM, or analytics. Do not ask ads, social, team, or budget until answered.",
     team:
       "Team: ask **only** whether they use an **in-house team plus agency**, or **full agency** management. Do not ask budget or timing until answered.",
     budget_timing:

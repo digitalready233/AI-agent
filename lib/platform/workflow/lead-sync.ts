@@ -38,6 +38,8 @@ export async function upsertLeadFromWorkflow(params: {
     values.find((v) => v && v.trim())?.trim() ?? null;
 
   const extraNotes = [
+    extracted.discovery_goal_focus &&
+      `Discovery focus: ${extracted.discovery_goal_focus}`,
     extracted.growth_milestone && `Growth milestone: ${extracted.growth_milestone}`,
     extracted.current_stack && `Current stack: ${extracted.current_stack}`,
     extracted.team_structure && `Team model: ${extracted.team_structure}`,

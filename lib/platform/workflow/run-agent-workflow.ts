@@ -24,6 +24,7 @@ import {
   inferReadybotPipelineStep,
   readybotBookingAllowed,
 } from "./readybot-stage-engine";
+import { inferReadybotMicroStep } from "./readybot-micro-steps";
 import { isReadybotStyleAgent } from "./readybot-stage-directives";
 import { upsertLeadFromWorkflow } from "./lead-sync";
 import { workflowInputSchema, type WorkflowInput } from "./schemas";
@@ -54,7 +55,11 @@ export async function runAgentWorkflow(
     channel,
     customerMetadata,
     externalMessageId,
+    inputMode,
+    turnTimestamp,
   } = parsed.data;
+
+  const turnAt = turnTimestamp ?? new Date().toISOString();
 
   console.info("[runAgentWorkflow] start", {
     organizationId,
@@ -135,6 +140,21 @@ export async function runAgentWorkflow(
   const readybotStep = readybot
     ? inferReadybotPipelineStep(analysis.lead_extraction)
     : null;
+  const readybotMicroStep =
+    readybot && readybotStep
+      ? inferReadybotMicroStep(analysis.lead_extraction, readybotStep)
+      : null;
+
+  let knowledgeForResponse = knowledgeContext;
+  if (readybot) {
+    knowledgeForResponse = await getKnowledgeContextForAgent(agentId, organizationId, {
+      strict: channel === "website" || channel === "embed" || channel === "live_agent",
+      userMessage: customerMessage,
+      workflowStage: analysis.conversation_stage,
+      readybotStep,
+      readybotMicroStep,
+    });
+  }
   const bookingEligible = readybot
     ? readybotBookingAllowed(readybotStep!, leadCategory) &&
       shouldSuggestBooking({ analysis, leadCategory })
@@ -153,16 +173,6 @@ export async function runAgentWorkflow(
     analysis = applyReadybotStageGuard(analysis, handoffRequired);
   }
   const suggestBooking = bookingEligible && !handoffRequired;
-
-  let knowledgeForResponse = knowledgeContext;
-  if (readybot) {
-    knowledgeForResponse = await getKnowledgeContextForAgent(agentId, organizationId, {
-      strict: channel === "website" || channel === "embed",
-      userMessage: customerMessage,
-      workflowStage: analysis.conversation_stage,
-      readybotStep: inferReadybotPipelineStep(analysis.lead_extraction),
-    });
-  }
 
   const existingLeadForBooking = conversation.lead_id
     ? await getLead(conversation.lead_id)
@@ -249,6 +259,13 @@ export async function runAgentWorkflow(
     metadata: {
       channel,
       intent: analysis.detected_intent,
+      input_mode: inputMode ?? "text",
+      audio_source: inputMode === "audio",
+      lead_id: lead.id,
+      stage: analysis.conversation_stage,
+      readybot_pipeline_step: readybotStep,
+      readybot_micro_step: readybotMicroStep,
+      timestamp: turnAt,
       ...(externalMessageId ? { whatsapp_message_id: externalMessageId } : {}),
     },
   });
@@ -260,6 +277,8 @@ export async function runAgentWorkflow(
     content: aiResponse,
     metadata: {
       stage: analysis.conversation_stage,
+      readybot_pipeline_step: readybotStep,
+      readybot_micro_step: readybotMicroStep,
       lead_score: scores.total,
       lead_scores: scores,
       lead_category: leadCategory,
@@ -366,9 +385,8 @@ export async function runAgentWorkflow(
     aiResponse,
     detectedIntent: analysis.detected_intent,
     conversationStage: analysis.conversation_stage,
-    readybotPipelineStep: readybot
-      ? inferReadybotPipelineStep(analysis.lead_extraction)
-      : null,
+    readybotPipelineStep: readybotStep,
+    readybotMicroStep,
     leadScore: scores.total,
     leadCategory,
     leadStatus: lead.lead_status,

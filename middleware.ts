@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-import { LOGIN_PATH } from "@/lib/auth/login-url";
+import { LOGIN_PATH, safeNextPath } from "@/lib/auth/login-url";
 import { isPublicPlatformApiPath } from "@/lib/auth/public-api-paths";
 import { getSupabaseAnonKey, isSupabaseConfigured } from "@/lib/supabase/env";
 
@@ -32,18 +32,6 @@ function createSupabaseMiddlewareClient(
 
 function isAuthedDemo(request: NextRequest): boolean {
   return request.cookies.get("platform_demo_auth")?.value === "1";
-}
-
-function safeNextPath(raw: string | null, fallback: string): string {
-  if (
-    typeof raw === "string" &&
-    raw.startsWith("/") &&
-    !raw.startsWith("//") &&
-    !raw.includes("\0")
-  ) {
-    return raw;
-  }
-  return fallback;
 }
 
 function redirectToLogin(request: NextRequest, nextPath: string) {

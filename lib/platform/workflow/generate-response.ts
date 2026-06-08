@@ -12,6 +12,10 @@ function missingLeadFields(
 ): string[] {
   const checks: [string, string | undefined][] = [
     ["name", extraction.full_name],
+    ["discovery focus", extraction.discovery_goal_focus],
+    ["growth milestone", extraction.growth_milestone],
+    ["current stack", extraction.current_stack],
+    ["team model", extraction.team_structure],
     ["phone", extraction.phone],
     ["email", extraction.email],
     ["business", extraction.business_name],

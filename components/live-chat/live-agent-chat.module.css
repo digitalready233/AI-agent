@@ -252,10 +252,74 @@
 .composer {
   flex-shrink: 0;
   display: flex;
+  flex-direction: column;
   gap: 0.55rem;
   padding: 0.85rem 1rem 1rem;
   border-top: 1px solid rgba(51, 65, 85, 0.5);
   background: rgba(8, 10, 16, 0.85);
+}
+
+.composerToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.modeToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  color: #94a3b8;
+  cursor: pointer;
+  user-select: none;
+}
+
+.voiceRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.micBtn {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(34, 211, 238, 0.35);
+  background: rgba(34, 211, 238, 0.12);
+  color: #e2e8f0;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.micBtnActive {
+  border-color: #f87171;
+  background: rgba(248, 113, 113, 0.15);
+  color: #fecaca;
+}
+
+.micBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.voiceHint {
+  margin: 0;
+  font-size: 0.72rem;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.voiceBadge {
+  font-size: 0.68rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.composerInputRow {
+  display: flex;
+  gap: 0.55rem;
+  width: 100%;
 }
 
 .input {

@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
+import { safeNextPath } from "@/lib/auth/login-url";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/dashboard";
+  const next = safeNextPath(searchParams.get("next"), "/dashboard");
   const errorParam = searchParams.get("error_description") ?? searchParams.get("error");
 
   if (!isSupabaseConfigured()) {
@@ -33,6 +34,5 @@ export async function GET(request: Request) {
     return NextResponse.redirect(login);
   }
 
-  const safeNext = next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard";
-  return NextResponse.redirect(new URL(safeNext, origin));
+  return NextResponse.redirect(new URL(next, origin));
 }

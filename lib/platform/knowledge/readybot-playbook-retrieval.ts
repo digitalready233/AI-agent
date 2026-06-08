@@ -1,6 +1,7 @@
 import type { KnowledgeEntry } from "@/lib/platform/types";
 import { READYBOT_PLAYBOOK_CATEGORY } from "@/lib/platform/seed/readybot-large-kb";
 import type { ReadybotPipelineStep } from "@/lib/platform/workflow/readybot-stage-engine";
+import type { ReadybotMicroStep } from "@/lib/platform/workflow/readybot-micro-steps";
 
 function tokenize(s: string): string[] {
   return s
@@ -57,7 +58,8 @@ function parseResponseScript(content: string): string {
 function scorePlaybookEntry(
   entry: KnowledgeEntry,
   userTokens: string[],
-  stageHint: string | null
+  stageHint: string | null,
+  microStep?: ReadybotMicroStep | null
 ): number {
   const content = entry.content;
   const stage = parseStageFromContent(content);
@@ -90,6 +92,27 @@ function scorePlaybookEntry(
     score += 3;
   }
 
+  const intent = content.match(/^Intent:\s*(.+)$/m)?.[1]?.toLowerCase() ?? "";
+  if (microStep === "goal_clarify") {
+    if (intent.includes("social_media_goal") || keywords.some((k) => ["followers", "engagement", "conversions"].includes(k))) {
+      score += 10;
+    }
+  }
+  if (microStep === "milestone") {
+    if (intent.includes("milestone") || keywords.some((k) => ["milestone", "6 months"].includes(k))) {
+      score += 10;
+    }
+  }
+  if (microStep === "stack_ads" && (pillar.includes("ads") || intent.includes("ads_stack"))) {
+    score += 10;
+  }
+  if (microStep === "stack_social" && (pillar.includes("social") || intent.includes("social_stack"))) {
+    score += 10;
+  }
+  if (microStep === "stack_web_ops" && (pillar.includes("web") || pillar.includes("ops") || intent.includes("web"))) {
+    score += 10;
+  }
+
   return score;
 }
 
@@ -99,6 +122,7 @@ export function retrieveReadybotPlaybookContext(
   options?: {
     workflowStage?: string | null;
     readybotStep?: ReadybotPipelineStep | null;
+    readybotMicroStep?: ReadybotMicroStep | null;
     limit?: number;
   }
 ): string {
@@ -115,7 +139,7 @@ export function retrieveReadybotPlaybookContext(
   const ranked = playbook
     .map((entry) => ({
       entry,
-      score: scorePlaybookEntry(entry, userTokens, stageHint),
+      score: scorePlaybookEntry(entry, userTokens, stageHint, options?.readybotMicroStep),
     }))
     .filter((r) => r.score > 0)
     .sort((a, b) => b.score - a.score);

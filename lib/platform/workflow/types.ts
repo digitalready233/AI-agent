@@ -17,6 +17,8 @@ export interface RunAgentWorkflowResult {
   conversationStage: WorkflowStage;
   /** ReadyBot pipeline step when the agent uses the staged qualification flow. */
   readybotPipelineStep?: import("./readybot-stage-engine").ReadybotPipelineStep | null;
+  /** Discovery / stack micro-step within the current pipeline stage. */
+  readybotMicroStep?: import("./readybot-micro-steps").ReadybotMicroStep | null;
   leadScore: number;
   leadCategory: LeadCategory;
   leadStatus: LeadStatus;

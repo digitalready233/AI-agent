@@ -97,6 +97,7 @@ function cleanLeadExtraction(raw: unknown): WorkflowAnalysis["lead_extraction"] 
     authority: cleanString(obj.authority),
     objections: cleanString(obj.objections),
     preferred_contact_method: cleanString(obj.preferred_contact_method),
+    discovery_goal_focus: cleanString(obj.discovery_goal_focus),
     growth_milestone: cleanString(obj.growth_milestone),
     current_stack: cleanString(obj.current_stack),
     team_structure: cleanString(obj.team_structure),

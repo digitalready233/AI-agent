@@ -23,6 +23,10 @@ import {
 import { LiveAgentSalesStrip } from "@/components/live-chat/live-agent-sales-strip";
 import type { VisitorChatMessage } from "@/lib/platform/visitor-chat";
 import { LiveAgentBookingPanel } from "./live-agent-booking-panel";
+import { LiveAgentAudioControls } from "./live-agent-audio-controls";
+import { useLiveAgentVoice } from "@/hooks/use-live-agent-voice";
+import type { PlatformChatResponseBody } from "@/lib/platform/chat/build-platform-chat-response";
+import { readybotMicroStepLabel } from "@/lib/platform/workflow/readybot-micro-steps";
 import styles from "./live-agent-chat.module.css";
 
 export type LiveAgentMeta = {
@@ -33,34 +37,17 @@ export type LiveAgentMeta = {
   welcomeMessage: string;
 };
 
-type ChatMessage = UiChatMessage;
+type ChatMessage = UiChatMessage & {
+  inputMode?: "text" | "audio";
+  audioBase64?: string | null;
+  audioMimeType?: string | null;
+};
 
-type PlatformChatResponse = {
-  reply?: string;
-  handoffRequired?: boolean;
-  handoffActive?: boolean;
-  handoffMessage?: string;
+type PlatformChatResponse = PlatformChatResponseBody & {
   staffHandling?: boolean;
   staffJoined?: boolean;
   status?: string;
   messages?: VisitorChatMessage[];
-  suggestBooking?: boolean;
-  bookingRecommended?: boolean;
-  bookingProvider?: "internal" | "google_calendar" | "calendly" | null;
-  meetingTypeKey?: string | null;
-  conversationId?: string;
-  leadId?: string | null;
-  detectedIntent?: string;
-  leadCategory?: string;
-  conversationStage?: string;
-  readybotPipelineStep?:
-    | "onboarding"
-    | "discovery"
-    | "stack"
-    | "team"
-    | "budget_timing"
-    | "close";
-  recommendedNextAction?: string;
   error?: string;
   code?: string;
 };
@@ -74,7 +61,7 @@ function isReadybotAgent(meta: LiveAgentMeta | null): boolean {
 function quickPromptsForAgent(
   meta: LiveAgentMeta | null,
   conversationStage?: string,
-  readybotPipelineStep?: PlatformChatResponse["readybotPipelineStep"]
+  readybotPipelineStep?: PlatformChatResponseBody["readybotPipelineStep"]
 ): { label: string; message: string }[] {
   if (!isReadybotAgent(meta)) {
     return DEFAULT_QUICK_PROMPTS.map((message) => ({ label: message, message }));
@@ -190,13 +177,18 @@ export function LiveAgentChat({
   const [conversationId, setConversationId] = useState<string | undefined>();
   const [conversationStage, setConversationStage] = useState<string | undefined>();
   const [readybotPipelineStep, setReadybotPipelineStep] = useState<
-    PlatformChatResponse["readybotPipelineStep"]
+    PlatformChatResponseBody["readybotPipelineStep"]
   >();
   const [detectedIntent, setDetectedIntent] = useState<string | undefined>();
   const [leadCategory, setLeadCategory] = useState<string | undefined>();
   const [recommendedNextAction, setRecommendedNextAction] = useState<
     string | undefined
   >();
+  const [readybotMicroStep, setReadybotMicroStep] = useState<
+    PlatformChatResponseBody["readybotMicroStep"]
+  >();
+  const [voiceInputMode, setVoiceInputMode] = useState(false);
+  const [voiceOutputMode, setVoiceOutputMode] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const quickPrompts = useMemo(
@@ -236,6 +228,118 @@ export function LiveAgentChat({
     },
     onMessages: applySyncMessages,
     onHandoffEnded: handleHandoffEnded,
+  });
+
+  const applyPlatformResponse = useCallback(
+    (data: PlatformChatResponse) => {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `a_${Date.now()}`,
+          role: "assistant",
+          content: data.reply?.trim() || "Thanks for your message.",
+          audioBase64: data.audioBase64,
+          audioMimeType: data.audioMimeType,
+        },
+      ]);
+
+      if (data.conversationId) setConversationId(data.conversationId);
+      if (data.conversationStage) setConversationStage(data.conversationStage);
+      if (data.readybotPipelineStep) setReadybotPipelineStep(data.readybotPipelineStep);
+      if (data.readybotMicroStep !== undefined) {
+        setReadybotMicroStep(data.readybotMicroStep);
+      }
+      if (data.detectedIntent) setDetectedIntent(data.detectedIntent);
+      if (data.leadCategory) setLeadCategory(data.leadCategory);
+
+      if (data.staffHandling) {
+        setHandoffActive(true);
+        setShowBooking(false);
+        if (data.staffJoined) setStaffJoined(true);
+        if (data.messages?.length) applySyncMessages(data.messages);
+        else void refreshHandoff();
+        if (data.reply?.trim()) {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: `ack_${Date.now()}`,
+              role: "system",
+              content: data.reply!.trim(),
+            },
+          ]);
+        }
+        return;
+      }
+
+      if (data.handoffRequired || data.handoffActive) {
+        setHandoffActive(true);
+        setShowBooking(false);
+        const msg =
+          data.handoffMessage?.trim() ||
+          "A member of our team will follow up with you shortly. Thank you for your patience.";
+        setHandoffMessage(msg);
+        setMessages((prev) => [
+          ...prev,
+          { id: `handoff_${Date.now()}`, role: "system", content: msg },
+        ]);
+        void refreshHandoff();
+      } else if (data.suggestBooking || data.bookingRecommended) {
+        setShowBooking(true);
+      }
+
+      if (data.recommendedNextAction) {
+        setRecommendedNextAction(data.recommendedNextAction);
+      } else if (data.reply && data.leadCategory === "hot") {
+        setRecommendedNextAction("Book consultation or assign human closer");
+      }
+    },
+    [applySyncMessages, refreshHandoff]
+  );
+
+  const handleVoiceTurn = useCallback(
+    (data: PlatformChatResponse & { transcript?: string }) => {
+      const transcript = data.transcript?.trim();
+      if (transcript) {
+        setMessages((prev) => {
+          const withoutWelcomeOnly =
+            prev.length === 1 && prev[0]?.id === "welcome" ? [] : prev;
+          return [
+            ...withoutWelcomeOnly,
+            {
+              id: `u_voice_${Date.now()}`,
+              role: "user",
+              content: transcript,
+              inputMode: "audio",
+            },
+          ];
+        });
+      }
+      applyPlatformResponse(data);
+      setIsLoading(false);
+    },
+    [applyPlatformResponse]
+  );
+
+  const handleVoiceError = useCallback((message: string) => {
+    setMessages((prev) => [
+      ...prev,
+      { id: `err_voice_${Date.now()}`, role: "assistant", content: message },
+    ]);
+    setIsLoading(false);
+  }, []);
+
+  const {
+    status: voiceStatus,
+    recording,
+    toggleRecording,
+    playResponseAudio,
+  } = useLiveAgentVoice({
+    sessionId,
+    agentId,
+    enabled: voiceInputMode && !handoffActive && Boolean(sessionId),
+    autoPlay: voiceOutputMode,
+    onTurnComplete: handleVoiceTurn,
+    onError: handleVoiceError,
   });
 
   const displayName = useMemo(() => {
@@ -342,12 +446,13 @@ export function LiveAgentChat({
   const sendMessage = useCallback(
     async (text: string) => {
       const trimmed = text.trim();
-      if (!trimmed || isLoading || !sessionId) return;
+      if (!trimmed || isLoading || !sessionId || voiceInputMode) return;
 
       const userMsg: ChatMessage = {
         id: `u_${Date.now()}`,
         role: "user",
         content: trimmed,
+        inputMode: "text",
       };
 
       setMessages((prev) => {
@@ -359,7 +464,10 @@ export function LiveAgentChat({
       setIsLoading(true);
 
       try {
-        const res = await fetch("/api/platform/chat", {
+        const endpoint = voiceOutputMode
+          ? "/api/platform/chat/voice"
+          : "/api/platform/chat";
+        const res = await fetch(endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -367,6 +475,7 @@ export function LiveAgentChat({
             agentId,
             message: trimmed,
             channel: "live_agent",
+            includeTts: voiceOutputMode,
           }),
         });
 
@@ -380,77 +489,13 @@ export function LiveAgentChat({
           );
         }
 
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `a_${Date.now()}`,
-            role: "assistant",
-            content: data.reply?.trim() || "Thanks for your message.",
-          },
-        ]);
-
-        if (data.conversationId) {
-          setConversationId(data.conversationId);
-        }
-        if (data.conversationStage) {
-          setConversationStage(data.conversationStage);
-        }
-        if (data.readybotPipelineStep) {
-          setReadybotPipelineStep(data.readybotPipelineStep);
-        }
-        if (data.detectedIntent) {
-          setDetectedIntent(data.detectedIntent);
-        }
-        if (data.leadCategory) {
-          setLeadCategory(data.leadCategory);
-        }
-
-        if (data.staffHandling) {
-          setHandoffActive(true);
-          setShowBooking(false);
-          if (data.staffJoined) setStaffJoined(true);
-          if (data.messages?.length) {
-            applySyncMessages(data.messages);
-          } else {
-            void refreshHandoff();
-          }
-          if (data.reply?.trim()) {
-            setMessages((prev) => [
-              ...prev,
-              {
-                id: `ack_${Date.now()}`,
-                role: "system",
-                content: data.reply!.trim(),
-              },
-            ]);
-          }
-          return;
-        }
-
-        if (data.handoffRequired || data.handoffActive) {
-          setHandoffActive(true);
-          setShowBooking(false);
-          const msg =
-            data.handoffMessage?.trim() ||
-            "A member of our team will follow up with you shortly. Thank you for your patience.";
-          setHandoffMessage(msg);
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: `handoff_${Date.now()}`,
-              role: "system",
-              content: msg,
-            },
-          ]);
-          void refreshHandoff();
-        } else if (data.suggestBooking || data.bookingRecommended) {
-          setShowBooking(true);
-        }
-
-        if (data.recommendedNextAction) {
-          setRecommendedNextAction(data.recommendedNextAction);
-        } else if (data.reply && data.leadCategory === "hot") {
-          setRecommendedNextAction("Book consultation or assign human closer");
+        applyPlatformResponse(data);
+        if (voiceOutputMode && data.reply) {
+          await playResponseAudio(
+            data.reply,
+            data.audioBase64,
+            data.audioMimeType
+          );
         }
       } catch (err) {
         setMessages((prev) => [
@@ -468,7 +513,15 @@ export function LiveAgentChat({
         setIsLoading(false);
       }
     },
-    [agentId, applySyncMessages, isLoading, refreshHandoff, sessionId]
+    [
+      agentId,
+      applyPlatformResponse,
+      isLoading,
+      playResponseAudio,
+      sessionId,
+      voiceInputMode,
+      voiceOutputMode,
+    ]
   );
 
   const onSubmit = (e: FormEvent) => {
@@ -509,7 +562,11 @@ export function LiveAgentChat({
         stage={conversationStage}
         intent={detectedIntent}
         leadCategory={leadCategory}
-        nextAction={recommendedNextAction}
+        nextAction={
+          readybotMicroStep
+            ? readybotMicroStepLabel(readybotMicroStep) ?? recommendedNextAction
+            : recommendedNextAction
+        }
         handoffActive={handoffActive}
         staffJoined={staffJoined}
         bookingReady={showBooking}
@@ -519,7 +576,8 @@ export function LiveAgentChat({
         scrollRef={scrollRef}
         messages={messages}
         displayName={displayName}
-        isLoading={isLoading}
+        isLoading={isLoading || voiceStatus === "processing"}
+        voiceOutputMode={voiceOutputMode}
       />
 
       <QuickPrompts
@@ -550,26 +608,71 @@ export function LiveAgentChat({
       ) : null}
 
       <form className={styles.composer} onSubmit={onSubmit}>
-        <input
-          className={styles.input}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder={
-            handoffActive
-              ? "Message your human closer…"
-              : "Tell the AI agent about your goals…"
-          }
-          disabled={isLoading}
-          autoComplete="off"
-          aria-label="Your message"
-        />
-        <button
-          type="submit"
-          className={styles.sendBtn}
-          disabled={isLoading || !input.trim()}
-        >
-          Send
-        </button>
+        <div className={styles.composerToolbar}>
+          <label className={styles.modeToggle}>
+            <input
+              type="checkbox"
+              checked={voiceInputMode}
+              onChange={(e) => setVoiceInputMode(e.target.checked)}
+              disabled={handoffActive}
+            />
+            Voice input
+          </label>
+          <label className={styles.modeToggle}>
+            <input
+              type="checkbox"
+              checked={voiceOutputMode}
+              onChange={(e) => setVoiceOutputMode(e.target.checked)}
+            />
+            Audio replies
+          </label>
+        </div>
+        {voiceInputMode ? (
+          <div className={styles.voiceRow}>
+            <button
+              type="button"
+              className={
+                recording ? `${styles.micBtn} ${styles.micBtnActive}` : styles.micBtn
+              }
+              disabled={isLoading || handoffActive || voiceStatus === "processing"}
+              onClick={() => void toggleRecording()}
+            >
+              {recording
+                ? "Stop & send"
+                : voiceStatus === "listening"
+                  ? "Listening…"
+                  : voiceStatus === "ai_speaking"
+                    ? "AI speaking…"
+                    : "Tap to speak"}
+            </button>
+            <p className={styles.voiceHint}>
+              Speak your answer — Whisper transcribes it, ReadyBot replies in text and audio.
+            </p>
+          </div>
+        ) : (
+          <div className={styles.composerInputRow}>
+            <input
+              className={styles.input}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={
+                handoffActive
+                  ? "Message your human closer…"
+                  : "Tell the AI agent about your goals…"
+              }
+              disabled={isLoading}
+              autoComplete="off"
+              aria-label="Your message"
+            />
+            <button
+              type="submit"
+              className={styles.sendBtn}
+              disabled={isLoading || !input.trim()}
+            >
+              Send
+            </button>
+          </div>
+        )}
       </form>
     </div>
   );
@@ -652,16 +755,23 @@ function ChatMessages({
   messages,
   displayName,
   isLoading,
+  voiceOutputMode,
 }: {
   scrollRef: RefObject<HTMLDivElement | null>;
   messages: ChatMessage[];
   displayName: string;
   isLoading: boolean;
+  voiceOutputMode: boolean;
 }) {
   return (
     <div ref={scrollRef} className={styles.messages} role="log" aria-live="polite">
       {messages.map((m) => (
-        <ChatBubble key={m.id} message={m} assistantLabel={displayName} />
+        <ChatBubble
+          key={m.id}
+          message={m}
+          assistantLabel={displayName}
+          voiceOutputMode={voiceOutputMode}
+        />
       ))}
       {isLoading ? (
         <div className={styles.typing} aria-label={`${displayName} is typing`} aria-live="polite">
@@ -677,9 +787,11 @@ function ChatMessages({
 function ChatBubble({
   message,
   assistantLabel,
+  voiceOutputMode,
 }: {
   message: ChatMessage;
   assistantLabel: string;
+  voiceOutputMode: boolean;
 }) {
   const className =
     message.role === "user"
@@ -700,9 +812,21 @@ function ChatBubble({
   return (
     <div className={className}>
       {message.role !== "system" ? (
-        <p className={styles.bubbleLabel}>{label}</p>
+        <p className={styles.bubbleLabel}>
+          {label}
+          {message.inputMode === "audio" ? (
+            <span className={styles.voiceBadge}> · voice</span>
+          ) : null}
+        </p>
       ) : null}
       <p className={styles.bubbleText}>{renderBoldMarkdown(message.content)}</p>
+      {message.role === "assistant" && voiceOutputMode ? (
+        <LiveAgentAudioControls
+          text={message.content}
+          audioBase64={message.audioBase64}
+          audioMimeType={message.audioMimeType}
+        />
+      ) : null}
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import type { WorkflowAnalysis, WorkflowStage } from "./schemas";
+import { needsDiscoveryGoalClarify } from "./readybot-micro-steps";
 
 /** Ordered sales pipeline — never skip or combine steps. */
 export type ReadybotPipelineStep =
@@ -38,6 +39,7 @@ export function inferReadybotPipelineStep(
 ): ReadybotPipelineStep {
   if (!hasText(extraction.full_name)) return "onboarding";
   if (!hasText(extraction.service_interest)) return "onboarding";
+  if (needsDiscoveryGoalClarify(extraction)) return "discovery";
   if (!hasText(extraction.growth_milestone)) return "discovery";
   if (!hasText(extraction.current_stack)) return "stack";
   if (!hasText(extraction.team_structure)) return "team";
@@ -96,9 +98,13 @@ export function applyReadybotStageGuard(
     return { ...analysis, conversation_stage: "handoff" };
   }
   const step = inferReadybotPipelineStep(analysis.lead_extraction);
+  const cappedStage = capWorkflowStageToStep(
+    analysis.conversation_stage,
+    step
+  );
   return {
     ...analysis,
-    conversation_stage: readybotStepToWorkflowStage(step),
+    conversation_stage: cappedStage,
     recommended_next_action: readybotRecommendedAction(step),
   };
 }
@@ -106,8 +112,8 @@ export function applyReadybotStageGuard(
 function readybotRecommendedAction(step: ReadybotPipelineStep): string {
   const map: Record<ReadybotPipelineStep, string> = {
     onboarding: "Collect name, then how you can help (one question at a time).",
-    discovery: "Ask one growth-milestone question only.",
-    stack: "Ask one stack question (ads, social, or web/ops) only.",
+    discovery: "Discovery micro-step: clarify goal focus (followers/engagement/conversions) OR ask one growth-milestone question only.",
+    stack: "Ask one stack question for the active pillar (ads, social, or web/ops) only.",
     team: "Ask internal vs external team support only.",
     budget_timing: "Ask budget tier and timeline only — never quote prices.",
     close: "Ask for email/phone or offer scheduler only.",
@@ -144,13 +150,17 @@ export const READYBOT_ANALYZER_STAGE_RULES = `## ReadyBot pipeline (enforce in c
 
 Always set conversation_stage from the **earliest incomplete** step (never skip ahead):
 - greeting: onboarding — missing name OR missing service_interest (initial need)
-- discovery: have name + need, missing growth_milestone
+- discovery: have name + need; missing discovery_goal_focus (when goal is broad) OR missing growth_milestone
 - qualification: have growth_milestone; missing current_stack OR team_structure OR (budget/timeline)
 - booking: stack + team + budget/timeline captured; missing email AND phone
 - handoff: only when human_requested, custom_pricing_requested, or lead is hot (do not use handoff stage otherwise)
 
 Per turn, fill lead_extraction from the full thread:
-- full_name, service_interest (onboarding need), growth_milestone, current_stack, team_structure, budget_tier, budget, timeline, email, phone
+- full_name, service_interest (onboarding need), discovery_goal_focus (followers | engagement | conversions), growth_milestone, current_stack, team_structure, budget_tier, budget, timeline, email, phone
+
+Discovery micro-step:
+- If service_interest is broad and discovery_goal_focus is empty, stay in discovery — clarify followers vs engagement vs conversions before the milestone question.
+- Only ask the growth-milestone question after discovery_goal_focus is captured OR the goal is already specific.
 
 Flags:
 - human_requested if they want a person

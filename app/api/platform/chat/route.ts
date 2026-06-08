@@ -19,6 +19,7 @@ import {
   classifyLlmError,
   visitorLlmErrorMessage,
 } from "@/lib/agent/llm-errors";
+import { buildPlatformChatResponse } from "@/lib/platform/chat/build-platform-chat-response";
 import {
   runAgentWorkflow,
   WorkflowError,
@@ -171,31 +172,7 @@ export async function POST(req: Request) {
     }
 
     const workflow = result as RunAgentWorkflowResult;
-    return Response.json({
-      reply: workflow.aiResponse,
-      conversationId: workflow.conversationId,
-      leadId: workflow.leadId,
-      handoffRequired: workflow.handoffRequired,
-      handoffMessage: workflow.handoffRequired
-        ? workflow.handoffVisitorMessage
-        : undefined,
-      handoffActive: workflow.handoffRequired,
-      suggestBooking: workflow.suggestBooking,
-      bookingRecommended: workflow.bookingRecommended,
-      suggestedMeetingType: workflow.suggestedMeetingType,
-      preferredDateTime: workflow.preferredDateTime,
-      bookingProvider: workflow.bookingProvider,
-      nextAction: workflow.nextAction,
-      calendlyEmbedUrl: workflow.calendlyEmbedUrl,
-      meetingTypeKey: workflow.meetingTypeKey,
-      detectedIntent: workflow.detectedIntent,
-      conversationStage: workflow.conversationStage,
-      readybotPipelineStep: workflow.readybotPipelineStep ?? undefined,
-      leadScore: workflow.leadScore,
-      leadCategory: workflow.leadCategory,
-      leadStatus: workflow.leadStatus,
-      recommendedNextAction: workflow.recommendedNextAction,
-    });
+    return Response.json(buildPlatformChatResponse(workflow));
   } catch (err) {
     if (err instanceof WorkflowError) {
       const body = publicWorkflowError(err);

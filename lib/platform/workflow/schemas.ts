@@ -40,6 +40,8 @@ export const workflowInputSchema = z.object({
     .optional(),
   /** External channel message id (e.g. WhatsApp wamid) for idempotency */
   externalMessageId: z.string().max(256).optional(),
+  inputMode: z.enum(["text", "audio"]).optional(),
+  turnTimestamp: z.string().max(64).optional(),
 });
 
 export const workflowAnalysisSchema = z.object({
@@ -60,6 +62,7 @@ export const workflowAnalysisSchema = z.object({
     objections: z.string().optional(),
     preferred_contact_method: z.string().optional(),
     /** ReadyBot / discovery pipeline */
+    discovery_goal_focus: z.string().optional(),
     growth_milestone: z.string().optional(),
     current_stack: z.string().optional(),
     team_structure: z.string().optional(),

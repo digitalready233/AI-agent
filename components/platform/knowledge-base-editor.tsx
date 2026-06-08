@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { KnowledgeImportButton } from "@/components/platform/knowledge-import-dialog";
 import { ReadybotKnowledgeSeedButton } from "@/components/platform/readybot-knowledge-seed";
 import {
   KNOWLEDGE_ENTRY_CATEGORIES,
@@ -187,12 +188,20 @@ export function KnowledgeBaseEditor({
         <CardHeader>
           <div className="flex flex-wrap items-start justify-between gap-2">
             <CardTitle className="text-base">Knowledge base details</CardTitle>
-            <ReadybotKnowledgeSeedButton
-              knowledgeBaseId={initialKb.id}
-              knowledgeBaseTitle={kb.title}
-              variant="secondary"
-              size="sm"
-            />
+            <div className="flex flex-wrap gap-2">
+              <KnowledgeImportButton
+                knowledgeBaseId={initialKb.id}
+                knowledgeBaseTitle={kb.title}
+                variant="outline"
+                size="sm"
+              />
+              <ReadybotKnowledgeSeedButton
+                knowledgeBaseId={initialKb.id}
+                knowledgeBaseTitle={kb.title}
+                variant="secondary"
+                size="sm"
+              />
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">

@@ -823,6 +823,7 @@ export async function getKnowledgeContextForAgent(
     userMessage?: string;
     workflowStage?: string | null;
     readybotStep?: import("./workflow/readybot-stage-engine").ReadybotPipelineStep | null;
+    readybotMicroStep?: import("./workflow/readybot-micro-steps").ReadybotMicroStep | null;
   }
 ): Promise<string> {
   const strict = options?.strict ?? false;
@@ -874,6 +875,7 @@ export async function getKnowledgeContextForAgent(
       {
         workflowStage: options.workflowStage,
         readybotStep: options.readybotStep,
+        readybotMicroStep: options.readybotMicroStep,
       }
     );
     return [coreBlock, playbookBlock].filter(Boolean).join("\n\n");
@@ -887,6 +889,7 @@ export async function getKnowledgeContextForAgent(
     const stageOnly = retrieveReadybotPlaybookContext(playbook, "", {
       workflowStage: options?.workflowStage,
       readybotStep: options?.readybotStep,
+      readybotMicroStep: options?.readybotMicroStep,
     });
     return [coreBlock, stageOnly].filter(Boolean).join("\n\n");
   }

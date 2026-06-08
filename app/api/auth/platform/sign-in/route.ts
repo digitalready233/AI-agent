@@ -1,8 +1,9 @@
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { verifyRecaptchaToken } from "@/lib/auth/recaptcha";
-import { isSupabaseConfigured } from "@/lib/supabase/env";
-import { createClient } from "@/lib/supabase/server";
+import { getSupabaseAnonKey, isSupabaseConfigured } from "@/lib/supabase/env";
 
 const bodySchema = z.object({
   email: z.string().email(),
@@ -28,7 +29,27 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: captcha.error }, { status: 400 });
   }
 
-  const supabase = await createClient();
+  const cookieStore = await cookies();
+  let response = NextResponse.json({ ok: true });
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    getSupabaseAnonKey(),
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            cookieStore.set(name, value, options);
+            response.cookies.set(name, value, options);
+          });
+        },
+      },
+    }
+  );
+
   const { error } = await supabase.auth.signInWithPassword({
     email: parsed.data.email,
     password: parsed.data.password,
@@ -41,5 +62,5 @@ export async function POST(req: Request) {
     );
   }
 
-  return NextResponse.json({ ok: true });
+  return response;
 }
