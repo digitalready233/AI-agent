@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { PlatformSidebar } from "@/components/platform/sidebar";
 import { PlatformHeader } from "@/components/platform/header";
 import { useSessionInactivityLogout } from "@/hooks/use-session-inactivity-logout";
@@ -25,6 +25,18 @@ export function DashboardShell({
   const pathname = usePathname();
 
   useSessionInactivityLogout(true);
+
+  const router = useRouter();
+
+  useEffect(() => {
+    const onPageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        router.refresh();
+      }
+    };
+    window.addEventListener("pageshow", onPageShow);
+    return () => window.removeEventListener("pageshow", onPageShow);
+  }, [router]);
 
   useEffect(() => {
     setMobileOpen(false);

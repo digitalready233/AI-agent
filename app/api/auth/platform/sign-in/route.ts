@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { verifyRecaptchaToken } from "@/lib/auth/recaptcha";
+import { stampSessionActivityCookie } from "@/lib/auth/session-inactivity-server";
 import { getSupabaseAnonKey, isSupabaseConfigured } from "@/lib/supabase/env";
 
 const bodySchema = z.object({
@@ -62,5 +63,5 @@ export async function POST(req: Request) {
     );
   }
 
-  return response;
+  return stampSessionActivityCookie(response);
 }

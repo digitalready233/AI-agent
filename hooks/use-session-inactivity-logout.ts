@@ -33,6 +33,22 @@ export function useSessionInactivityLogout(enabled = true) {
   useEffect(() => {
     if (!enabled || timeoutMs <= 0) return;
 
+    async function performLogout() {
+      if (signingOutRef.current) return;
+      signingOutRef.current = true;
+      const minutes = formatInactivityMinutes(timeoutMs);
+      toast.info(`Signed out after ${minutes} minutes of inactivity.`, {
+        duration: 6000,
+      });
+      await signOutClient(router);
+    }
+
+    const last = getLastSessionActivityAt();
+    if (Date.now() - last >= timeoutMs) {
+      void performLogout();
+      return;
+    }
+
     touchSessionActivity();
 
     const onActivity = () => {
@@ -60,16 +76,6 @@ export function useSessionInactivityLogout(enabled = true) {
         void performLogout();
       }
     }, CHECK_INTERVAL_MS);
-
-    async function performLogout() {
-      if (signingOutRef.current) return;
-      signingOutRef.current = true;
-      const minutes = formatInactivityMinutes(timeoutMs);
-      toast.info(`Signed out after ${minutes} minutes of inactivity.`, {
-        duration: 6000,
-      });
-      await signOutClient(router);
-    }
 
     return () => {
       for (const ev of ACTIVITY_EVENTS) {

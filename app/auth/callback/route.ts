@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { safeNextPath } from "@/lib/auth/login-url";
+import { stampSessionActivityCookie } from "@/lib/auth/session-inactivity-server";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 
@@ -34,5 +35,7 @@ export async function GET(request: Request) {
     return NextResponse.redirect(login);
   }
 
-  return NextResponse.redirect(new URL(next, origin));
+  return stampSessionActivityCookie(
+    NextResponse.redirect(new URL(next, origin))
+  );
 }

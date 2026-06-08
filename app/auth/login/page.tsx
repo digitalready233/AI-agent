@@ -1,12 +1,20 @@
+import Link from "next/link";
 import { AuthFormSkeleton } from "@/components/platform/page-skeletons";
 import { LoginForm } from "@/components/platform/auth/login-form";
-import Link from "next/link";
 import { Suspense } from "react";
-import { Sparkles } from "lucide-react";
+import { ArrowLeft, Sparkles } from "lucide-react";
 
 export default function AuthLoginPage() {
   return (
     <div className="w-full max-w-[420px] space-y-10">
+      <Link
+        href="/"
+        className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition-colors hover:text-cyan-400/90 no-underline"
+      >
+        <ArrowLeft className="h-4 w-4" aria-hidden />
+        Back to home
+      </Link>
+
       <div className="space-y-4 lg:hidden text-center">
         <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-400 to-cyan-600 shadow-lg shadow-cyan-500/25">
           <Sparkles className="h-5 w-5 text-slate-950" />

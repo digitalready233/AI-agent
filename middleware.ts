@@ -3,6 +3,10 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { LOGIN_PATH, safeNextPath } from "@/lib/auth/login-url";
 import { isPublicPlatformApiPath } from "@/lib/auth/public-api-paths";
+import {
+  clearSessionActivityCookie,
+  isSessionIdleExpired,
+} from "@/lib/auth/session-inactivity-server";
 import { getSupabaseAnonKey, isSupabaseConfigured } from "@/lib/supabase/env";
 
 const AUTH_PREFIXES = ["/auth"];
@@ -37,7 +41,9 @@ function isAuthedDemo(request: NextRequest): boolean {
 function redirectToLogin(request: NextRequest, nextPath: string) {
   const login = new URL(LOGIN_PATH, request.url);
   login.searchParams.set("next", nextPath);
-  return NextResponse.redirect(login);
+  const response = NextResponse.redirect(login);
+  response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
+  return response;
 }
 
 function isProtectedAppPath(pathname: string): boolean {
@@ -95,6 +101,24 @@ export async function middleware(request: NextRequest) {
       data: { user },
     } = await supabase.auth.getUser();
 
+    if (user && isSessionIdleExpired(request)) {
+      await supabase.auth.signOut();
+      clearSessionActivityCookie(response);
+
+      if (isPlatform || isProtectedApi) {
+        const loginRedirect = redirectToLogin(request, pathname);
+        for (const cookie of response.cookies.getAll()) {
+          loginRedirect.cookies.set(cookie.name, cookie.value);
+        }
+        clearSessionActivityCookie(loginRedirect);
+        loginRedirect.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
+        return loginRedirect;
+      }
+
+      response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
+      return response;
+    }
+
     if ((isPlatform || isProtectedApi) && !user) {
       return redirectToLogin(request, pathname);
     }
@@ -104,7 +128,9 @@ export async function middleware(request: NextRequest) {
       user &&
       (pathname === LOGIN_PATH || pathname === "/auth/register")
     ) {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
+      const redirect = NextResponse.redirect(new URL("/dashboard", request.url));
+      redirect.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
+      return redirect;
     }
   }
 
