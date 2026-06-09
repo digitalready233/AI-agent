@@ -1,10 +1,10 @@
 import {
-  AI_WORKFLOW_STEPS,
   PLATFORM_FEATURES,
   WORKSPACE_SCREENSHOTS,
   featureStatusLabel,
   type FeatureAvailability,
 } from "@/lib/copy/public-messaging";
+import { LandingAgentDemo } from "@/components/landing/landing-agent-demo";
 import styles from "./landing.module.css";
 
 function statusClass(status: FeatureAvailability): string {
@@ -21,28 +21,15 @@ export function LandingPlatformProof() {
           <div className={styles.sectionHeaderCenter}>
             <p className={styles.eyebrow}>See the AI workflow</p>
             <h2 className={`${styles.sectionTitle} font-display`}>
-              From first question to human closer
+              Multi-step discovery, stack qualification & voice
             </h2>
             <p className={styles.sectionLeadCenter}>
-              One sales motion — not a support ticket. Every step is tracked in your
-              workspace with lead score, stage, and recommended next action.
+              ReadyBot asks one micro-step at a time — goal focus, growth milestone,
+              then service pillar — with optional bi-directional audio. Every stage
+              is tracked from Discovery through Handoff.
             </p>
           </div>
-          <ol className={styles.workflowSteps}>
-            {AI_WORKFLOW_STEPS.map((step, i) => (
-              <li key={step.title} className={styles.workflowStep}>
-                <span className={styles.workflowIndex}>
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                <div>
-                  <h3 className={`${styles.workflowTitle} font-display`}>
-                    {step.title}
-                  </h3>
-                  <p className={styles.workflowBody}>{step.body}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
+          <LandingAgentDemo />
         </div>
       </section>
 

@@ -366,21 +366,21 @@ export function Landing() {
                     className={`${styles.heroBubble} ${styles.heroBubbleAgent}`}
                   >
                     <span className={styles.heroBubbleLabel}>Agent</span>
-                    Welcome to Digital Ready. What is the single biggest growth
-                    milestone you want to hit in the next six months?
+                    Are you focusing more on followers, engagement, or
+                    conversions?
                   </div>
                   <div
                     className={`${styles.heroBubble} ${styles.heroBubbleUser}`}
                   >
                     <span className={styles.heroBubbleLabel}>Visitor</span>
-                    We need more qualified leads from Meta—not just reach.
+                    Conversions—we need better Meta ad performance.
                   </div>
                   <div
                     className={`${styles.heroBubble} ${styles.heroBubbleAgent}`}
                   >
                     <span className={styles.heroBubbleLabel}>Agent</span>
-                    Understood. Are you running ads today, or starting fresh? I
-                    can note your tier and connect a strategist.
+                    What's your biggest milestone for growth in the next 6
+                    months?
                   </div>
                   <div className={styles.heroTyping}>
                     <span />
@@ -612,7 +612,7 @@ export function Landing() {
         </div>
       </section>
 
-      <section id="workflow" className={styles.section}>
+      <section id="knowledge" className={styles.section}>
         <div className={styles.sectionAltInner}>
           <div className={styles.sectionHeaderCenter}>
             <p className={styles.eyebrow}>Knowledge base</p>

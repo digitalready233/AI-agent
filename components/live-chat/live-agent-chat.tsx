@@ -14,13 +14,14 @@ import { visitorToUiMessages, type UiChatMessage } from "@/lib/chat/visitor-mess
 import { useVisitorHandoffSync } from "@/hooks/use-visitor-handoff-sync";
 import {
   READYBOT_BUDGET_QUICK_REPLIES,
-  READYBOT_SERVICE_QUICK_REPLIES,
 } from "@/lib/platform/playbooks/digital-ready-readybot";
 import {
   LIVE_AGENT_DEFAULT_QUICK_PROMPTS,
   LIVE_AGENT_QUALIFICATION_WELCOME,
 } from "@/lib/copy/public-messaging";
 import { LiveAgentSalesStrip } from "@/components/live-chat/live-agent-sales-strip";
+import { LiveAgentStageBar } from "@/components/live-chat/live-agent-stage-bar";
+import { resolveUiPipelineStage } from "@/lib/live-chat/pipeline-stages";
 import type { VisitorChatMessage } from "@/lib/platform/visitor-chat";
 import { LiveAgentBookingPanel } from "./live-agent-booking-panel";
 import { LiveAgentAudioControls } from "./live-agent-audio-controls";
@@ -41,6 +42,7 @@ type ChatMessage = UiChatMessage & {
   inputMode?: "text" | "audio";
   audioBase64?: string | null;
   audioMimeType?: string | null;
+  at?: string;
 };
 
 type PlatformChatResponse = PlatformChatResponseBody & {
@@ -58,11 +60,17 @@ function isReadybotAgent(meta: LiveAgentMeta | null): boolean {
   return label.includes("readybot");
 }
 
+type QuickPrompt = {
+  label: string;
+  message: string;
+  variant?: "default" | "accent" | "sales";
+};
+
 function quickPromptsForAgent(
   meta: LiveAgentMeta | null,
   conversationStage?: string,
   readybotPipelineStep?: PlatformChatResponseBody["readybotPipelineStep"]
-): { label: string; message: string }[] {
+): QuickPrompt[] {
   if (!isReadybotAgent(meta)) {
     return DEFAULT_QUICK_PROMPTS.map((message) => ({ label: message, message }));
   }
@@ -79,36 +87,77 @@ function quickPromptsForAgent(
             : undefined);
   if (step === "budget_timing" || step === "team") {
     return [
-      ...READYBOT_BUDGET_QUICK_REPLIES,
+      ...READYBOT_BUDGET_QUICK_REPLIES.map((p) => ({ ...p, variant: "accent" as const })),
       {
-        label: "Speak to team",
-        message: "I'd like to speak with someone on your team.",
+        label: "Talk to Sales",
+        message: "I'd like to speak with someone on your sales team.",
+        variant: "sales" as const,
       },
     ];
   }
   if (step === "stack" || conversationStage === "qualification") {
     return [
-      ...READYBOT_SERVICE_QUICK_REPLIES,
       {
-        label: "Speak to team",
-        message: "I'd like to speak with someone on your team.",
+        label: "Paid Ads & Leads",
+        message:
+          "I want to focus on paid ads and lead generation (Meta, Google, or TikTok).",
+        variant: "accent" as const,
+      },
+      {
+        label: "Social Media Management",
+        message: "We need social media management and branding support.",
+        variant: "accent" as const,
+      },
+      {
+        label: "Digital Transformation",
+        message:
+          "We're looking for full-scale digital transformation — web, e-commerce, and automation.",
+        variant: "accent" as const,
+      },
+      {
+        label: "Talk to Sales",
+        message: "I'd like to speak with someone on your sales team.",
+        variant: "sales" as const,
       },
     ];
   }
   if (step === "onboarding" || step === "discovery" || conversationStage === "greeting" || conversationStage === "discovery") {
     return [
-      ...READYBOT_SERVICE_QUICK_REPLIES,
       {
-        label: "Book consultation",
-        message: "I'd like to book a strategy consultation.",
+        label: "Paid Ads & Leads",
+        message:
+          "I want to focus on paid ads and lead generation (Meta, Google, or TikTok).",
+        variant: "accent" as const,
+      },
+      {
+        label: "Social Media Management",
+        message: "We need social media management and branding support.",
+        variant: "accent" as const,
+      },
+      {
+        label: "Digital Transformation",
+        message:
+          "We're looking for full-scale digital transformation — web, e-commerce, and automation.",
+        variant: "accent" as const,
+      },
+      {
+        label: "Talk to Sales",
+        message: "I'd like to speak with someone on your sales team.",
+        variant: "sales" as const,
       },
     ];
   }
   return [
-    ...READYBOT_SERVICE_QUICK_REPLIES.slice(0, 1),
     {
-      label: "Speak to team",
-      message: "I'd like to speak with someone on your team.",
+      label: "Paid Ads & Leads",
+      message:
+        "I want to focus on paid ads and lead generation (Meta, Google, or TikTok).",
+      variant: "accent" as const,
+    },
+    {
+      label: "Talk to Sales",
+      message: "I'd like to speak with someone on your sales team.",
+      variant: "sales" as const,
     },
   ];
 }
@@ -130,6 +179,7 @@ function historyRowsToUi(
         : "assistant",
     content: m.content,
     label: m.label,
+    at: m.at,
   }));
 }
 
@@ -191,6 +241,16 @@ export function LiveAgentChat({
   const [voiceOutputMode, setVoiceOutputMode] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  const uiPipelineStage = useMemo(
+    () =>
+      resolveUiPipelineStage({
+        readybotPipelineStep,
+        conversationStage,
+        handoffActive,
+      }),
+    [conversationStage, handoffActive, readybotPipelineStep]
+  );
+
   const quickPrompts = useMemo(
     () => quickPromptsForAgent(meta, conversationStage, readybotPipelineStep),
     [meta, conversationStage, readybotPipelineStep]
@@ -240,6 +300,7 @@ export function LiveAgentChat({
           content: data.reply?.trim() || "Thanks for your message.",
           audioBase64: data.audioBase64,
           audioMimeType: data.audioMimeType,
+          at: new Date().toISOString(),
         },
       ]);
 
@@ -310,6 +371,7 @@ export function LiveAgentChat({
               role: "user",
               content: transcript,
               inputMode: "audio",
+              at: new Date().toISOString(),
             },
           ];
         });
@@ -341,6 +403,14 @@ export function LiveAgentChat({
     onTurnComplete: handleVoiceTurn,
     onError: handleVoiceError,
   });
+
+  const sessionStatus = useMemo(() => {
+    if (voiceStatus === "listening") return "Listening…";
+    if (voiceStatus === "processing") return "Transcribing…";
+    if (isLoading) return "Typing…";
+    if (voiceStatus === "ai_speaking") return "Speaking…";
+    return null;
+  }, [isLoading, voiceStatus]);
 
   const displayName = useMemo(() => {
     if (!meta) return "AI Assistant";
@@ -423,6 +493,7 @@ export function LiveAgentChat({
                 agentPayload.welcomeMessage?.trim() ||
                 historyPayload.welcomeMessage?.trim() ||
                 LIVE_AGENT_QUALIFICATION_WELCOME,
+              at: new Date().toISOString(),
             },
           ]);
         }
@@ -453,6 +524,7 @@ export function LiveAgentChat({
         role: "user",
         content: trimmed,
         inputMode: "text",
+        at: new Date().toISOString(),
       };
 
       setMessages((prev) => {
@@ -558,6 +630,14 @@ export function LiveAgentChat({
         />
       </header>
 
+      <LiveAgentStageBar activeStage={uiPipelineStage} />
+
+      {sessionStatus ? (
+        <p className={styles.sessionStatus} role="status" aria-live="polite">
+          {sessionStatus}
+        </p>
+      ) : null}
+
       <LiveAgentSalesStrip
         stage={conversationStage}
         intent={detectedIntent}
@@ -576,7 +656,14 @@ export function LiveAgentChat({
         scrollRef={scrollRef}
         messages={messages}
         displayName={displayName}
-        isLoading={isLoading || voiceStatus === "processing"}
+        loadingLabel={
+          voiceStatus === "processing"
+            ? "Transcribing…"
+            : voiceStatus === "listening"
+              ? "Listening…"
+              : "Typing…"
+        }
+        showTyping={isLoading || voiceStatus === "processing"}
         voiceOutputMode={voiceOutputMode}
       />
 
@@ -609,23 +696,66 @@ export function LiveAgentChat({
 
       <form className={styles.composer} onSubmit={onSubmit}>
         <div className={styles.composerToolbar}>
-          <label className={styles.modeToggle}>
-            <input
-              type="checkbox"
-              checked={voiceInputMode}
-              onChange={(e) => setVoiceInputMode(e.target.checked)}
-              disabled={handoffActive}
-            />
-            Voice input
-          </label>
-          <label className={styles.modeToggle}>
-            <input
-              type="checkbox"
-              checked={voiceOutputMode}
-              onChange={(e) => setVoiceOutputMode(e.target.checked)}
-            />
-            Audio replies
-          </label>
+          <div className={styles.toolbarGroup}>
+            <span className={styles.toolbarLabel}>Input</span>
+            <div className={styles.segmented} role="group" aria-label="Input mode">
+              <button
+                type="button"
+                className={
+                  !voiceInputMode
+                    ? `${styles.segmentBtn} ${styles.segmentBtnActive}`
+                    : styles.segmentBtn
+                }
+                onClick={() => setVoiceInputMode(false)}
+                disabled={handoffActive}
+                aria-pressed={!voiceInputMode}
+              >
+                Text
+              </button>
+              <button
+                type="button"
+                className={
+                  voiceInputMode
+                    ? `${styles.segmentBtn} ${styles.segmentBtnActive}`
+                    : styles.segmentBtn
+                }
+                onClick={() => setVoiceInputMode(true)}
+                disabled={handoffActive}
+                aria-pressed={voiceInputMode}
+              >
+                Voice
+              </button>
+            </div>
+          </div>
+          <div className={styles.toolbarGroup}>
+            <span className={styles.toolbarLabel}>AI replies</span>
+            <div className={styles.segmented} role="group" aria-label="Reply mode">
+              <button
+                type="button"
+                className={
+                  !voiceOutputMode
+                    ? `${styles.segmentBtn} ${styles.segmentBtnActive}`
+                    : styles.segmentBtn
+                }
+                onClick={() => setVoiceOutputMode(false)}
+                aria-pressed={!voiceOutputMode}
+              >
+                Text
+              </button>
+              <button
+                type="button"
+                className={
+                  voiceOutputMode
+                    ? `${styles.segmentBtn} ${styles.segmentBtnActive}`
+                    : styles.segmentBtn
+                }
+                onClick={() => setVoiceOutputMode(true)}
+                aria-pressed={voiceOutputMode}
+              >
+                Audio
+              </button>
+            </div>
+          </div>
         </div>
         {voiceInputMode ? (
           <div className={styles.voiceRow}>
@@ -754,13 +884,15 @@ function ChatMessages({
   scrollRef,
   messages,
   displayName,
-  isLoading,
+  loadingLabel,
+  showTyping,
   voiceOutputMode,
 }: {
   scrollRef: RefObject<HTMLDivElement | null>;
   messages: ChatMessage[];
   displayName: string;
-  isLoading: boolean;
+  loadingLabel: string;
+  showTyping: boolean;
   voiceOutputMode: boolean;
 }) {
   return (
@@ -773,11 +905,14 @@ function ChatMessages({
           voiceOutputMode={voiceOutputMode}
         />
       ))}
-      {isLoading ? (
-        <div className={styles.typing} aria-label={`${displayName} is typing`} aria-live="polite">
-          <span />
-          <span />
-          <span />
+      {showTyping ? (
+        <div className={styles.typingRow} aria-label={loadingLabel} aria-live="polite">
+          <div className={styles.typing}>
+            <span />
+            <span />
+            <span />
+          </div>
+          <span className={styles.typingLabel}>{loadingLabel}</span>
         </div>
       ) : null}
     </div>
@@ -810,14 +945,21 @@ function ChatBubble({
         : assistantLabel;
 
   return (
-    <div className={className}>
+    <div className={`${className} ${styles.bubbleEnter}`}>
       {message.role !== "system" ? (
-        <p className={styles.bubbleLabel}>
-          {label}
-          {message.inputMode === "audio" ? (
-            <span className={styles.voiceBadge}> · voice</span>
+        <div className={styles.bubbleHeader}>
+          <p className={styles.bubbleLabel}>
+            {label}
+            {message.inputMode === "audio" ? (
+              <span className={styles.voiceBadge}> · voice</span>
+            ) : null}
+          </p>
+          {message.at ? (
+            <time className={styles.bubbleTime} dateTime={message.at}>
+              {formatMessageTime(message.at)}
+            </time>
           ) : null}
-        </p>
+        </div>
       ) : null}
       <p className={styles.bubbleText}>{renderBoldMarkdown(message.content)}</p>
       {message.role === "assistant" && voiceOutputMode ? (
@@ -841,6 +983,17 @@ function renderBoldMarkdown(text: string): ReactNode {
   });
 }
 
+function formatMessageTime(iso: string): string {
+  try {
+    return new Date(iso).toLocaleTimeString(undefined, {
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  } catch {
+    return "";
+  }
+}
+
 function QuickPrompts({
   disabled,
   hidden,
@@ -849,7 +1002,7 @@ function QuickPrompts({
 }: {
   disabled: boolean;
   hidden?: boolean;
-  prompts: { label: string; message: string }[];
+  prompts: QuickPrompt[];
   onSelect: (text: string) => void;
 }) {
   if (hidden) return null;
@@ -859,7 +1012,13 @@ function QuickPrompts({
         <button
           key={p.label}
           type="button"
-          className={styles.quickBtn}
+          className={
+            p.variant === "sales"
+              ? styles.quickBtnSales
+              : p.variant === "accent"
+                ? styles.quickBtnAccent
+                : styles.quickBtn
+          }
           disabled={disabled}
           onClick={() => onSelect(p.message)}
         >

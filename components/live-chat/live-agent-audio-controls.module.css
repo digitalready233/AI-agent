@@ -1,28 +1,94 @@
-.row {
+.player {
   display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  margin-top: 0.45rem;
   flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.55rem;
+  padding: 0.45rem 0.55rem;
+  border-radius: 12px;
+  border: 1px solid rgba(34, 211, 238, 0.2);
+  background: rgba(8, 15, 28, 0.65);
 }
 
-.btn {
-  font-size: 0.72rem;
-  font-weight: 600;
-  padding: 0.25rem 0.55rem;
-  border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.35);
-  background: rgba(15, 23, 42, 0.55);
-  color: #cbd5e1;
+.playBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid rgba(34, 211, 238, 0.35);
+  border-radius: 50%;
+  background: rgba(34, 211, 238, 0.12);
+  color: #67e8f9;
   cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease, transform 0.15s ease;
 }
 
-.btn:hover {
-  border-color: rgba(34, 211, 238, 0.45);
-  color: #e2e8f0;
+.playBtn:hover {
+  background: rgba(34, 211, 238, 0.22);
+  transform: scale(1.04);
 }
 
-.hint {
-  font-size: 0.68rem;
+.waveform {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 28px;
+  flex: 1;
+  min-width: 72px;
+}
+
+.bar,
+.barActive {
+  width: 3px;
+  border-radius: 999px;
+  background: rgba(100, 116, 139, 0.55);
+}
+
+.barActive {
+  background: rgba(34, 211, 238, 0.85);
+  animation: wavePulse 0.85s ease-in-out infinite alternate;
+}
+
+@keyframes wavePulse {
+  from {
+    transform: scaleY(0.45);
+    opacity: 0.55;
+  }
+  to {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+.meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
   color: #64748b;
+  flex-shrink: 0;
+}
+
+.time {
+  font-size: 0.65rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+
+.progressTrack {
+  width: 100%;
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(51, 65, 85, 0.65);
+  overflow: hidden;
+}
+
+.progressFill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #22d3ee, #818cf8);
+  transition: width 0.12s linear;
 }

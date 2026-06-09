@@ -76,6 +76,14 @@ export function useLiveAgentVoice(params: {
           await audio.play();
           return;
         }
+        if (typeof window !== "undefined" && window.speechSynthesis) {
+          window.speechSynthesis.cancel();
+          const utterance = new SpeechSynthesisUtterance(reply);
+          utterance.onend = () => setStatus("idle");
+          utterance.onerror = () => setStatus("idle");
+          window.speechSynthesis.speak(utterance);
+          return;
+        }
         setStatus("idle");
       } catch {
         setStatus("idle");
