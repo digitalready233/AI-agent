@@ -1,21 +1,10 @@
 import { hasActiveAccess, isBillingEnforced, billingBypassed } from "@/lib/billing/access-client";
+import { isBillingExemptApiPath } from "@/lib/billing/api-exempt-paths";
 import { isBillingExemptRole } from "@/lib/billing/exempt";
 import { getOrganizationSettings } from "@/lib/platform/settings-data";
 import type { SessionContext } from "@/lib/platform/types";
 
-/** API routes that stay usable without an active subscription (billing UI, settings). */
-export const BILLING_EXEMPT_API_PREFIXES = [
-  "/api/billing/",
-  "/api/platform/settings",
-  "/api/platform/organization",
-  "/api/auth/",
-] as const;
-
-export function isBillingExemptApiPath(pathname: string): boolean {
-  return BILLING_EXEMPT_API_PREFIXES.some(
-    (p) => pathname === p || pathname.startsWith(p)
-  );
-}
+export { BILLING_EXEMPT_API_PREFIXES, isBillingExemptApiPath } from "@/lib/billing/api-exempt-paths";
 
 export async function organizationLacksPlatformAccess(
   organizationId: string,

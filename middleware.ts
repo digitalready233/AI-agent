@@ -8,7 +8,7 @@ import {
   hasActiveAccess,
   isBillingEnforced,
 } from "@/lib/billing/access-client";
-import { isBillingExemptApiPath } from "@/lib/billing/api-access";
+import { isBillingExemptApiPath } from "@/lib/billing/api-exempt-paths";
 import { isBillingExemptRole } from "@/lib/billing/exempt";
 import type { BillingSettings } from "@/lib/platform/settings-types";
 import {
