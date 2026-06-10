@@ -25,7 +25,11 @@
   var position = script.getAttribute("data-position") === "left" ? "left" : "right";
   var label = script.getAttribute("data-label") || "Chat with us";
 
-  var chatUrl = base + "/embed" + (agentId ? "?agentId=" + encodeURIComponent(agentId) : "");
+  var chatUrl =
+    base +
+    (agentId
+      ? "/live-agent/" + encodeURIComponent(agentId) + "?embed=1"
+      : "/embed");
 
   var launcher = document.createElement("button");
   launcher.type = "button";

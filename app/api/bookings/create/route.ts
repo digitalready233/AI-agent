@@ -4,7 +4,10 @@ import {
   getAgent,
   getConversation,
   getLead,
+  saveConversation,
+  saveLead,
 } from "@/lib/platform/data";
+import type { Lead } from "@/lib/platform/types";
 import { hasServiceRoleKey, withPlatformAdmin } from "@/lib/platform/db";
 import {
   createInternalBooking,
@@ -61,17 +64,45 @@ export async function POST(req: Request) {
 
       let lead = conversation.lead_id ? await getLead(conversation.lead_id) : null;
       if (!lead) {
-        throw new InternalBookingError(
-          "Start a conversation before booking.",
-          "INVALID_SLOT"
-        );
-      }
-
-      if (parsed.data.customerEmail) {
-        lead = { ...lead, email: parsed.data.customerEmail };
-      }
-      if (parsed.data.customerName) {
-        lead = { ...lead, full_name: parsed.data.customerName };
+        const now = new Date().toISOString();
+        const draft: Lead = {
+          id: crypto.randomUUID(),
+          organization_id: agent.organization_id,
+          full_name:
+            parsed.data.customerName?.trim() ||
+            conversation.customer_name?.trim() ||
+            "Website visitor",
+          email: parsed.data.customerEmail ?? null,
+          phone: null,
+          business_name: null,
+          service_interest: null,
+          budget: null,
+          timeline: null,
+          source: channel,
+          lead_score: 0,
+          lead_category: "cold",
+          lead_status: "created",
+          assigned_to: null,
+          summary: null,
+          next_action: null,
+          follow_up_date: null,
+          notes: null,
+          created_at: now,
+          updated_at: now,
+        };
+        lead = await saveLead(draft);
+        await saveConversation({
+          ...conversation,
+          lead_id: lead.id,
+          updated_at: now,
+        });
+      } else {
+        if (parsed.data.customerEmail) {
+          lead = { ...lead, email: parsed.data.customerEmail };
+        }
+        if (parsed.data.customerName) {
+          lead = { ...lead, full_name: parsed.data.customerName };
+        }
       }
 
       const booking = await createInternalBooking({

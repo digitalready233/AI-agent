@@ -1,16 +1,11 @@
+import {
+  PublicChatGuardError,
+  guardResponseHeaders,
+  resolveAllowedPublicAgentId,
+} from "@/lib/auth/public-chat-guard";
 import { getAgent } from "@/lib/platform/data";
 import { hasServiceRoleKey, withPlatformAdmin } from "@/lib/platform/db";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
-
-function resolveAgentId(requested: string | null): string {
-  const fromQuery = requested?.trim();
-  if (fromQuery) return fromQuery;
-  return (
-    process.env.NEXT_PUBLIC_PLATFORM_AGENT_ID?.trim() ||
-    process.env.PLATFORM_AGENT_ID?.trim() ||
-    ""
-  );
-}
 
 /** Public agent metadata for customer-facing chat (no auth). */
 export async function GET(req: Request) {
@@ -19,10 +14,17 @@ export async function GET(req: Request) {
   }
 
   const { searchParams } = new URL(req.url);
-  const agentId = resolveAgentId(searchParams.get("agentId"));
-
-  if (!agentId) {
-    return Response.json({ error: "agentId is required." }, { status: 400 });
+  let agentId: string;
+  try {
+    agentId = resolveAllowedPublicAgentId(searchParams.get("agentId") ?? undefined);
+  } catch (err) {
+    if (err instanceof PublicChatGuardError) {
+      return guardResponseHeaders(
+        Response.json({ error: err.message }, { status: err.status }),
+        err.retryAfterSec
+      );
+    }
+    throw err;
   }
 
   try {

@@ -83,7 +83,7 @@ export function AgentDetailTabs({
               </div>
               <div className="pt-2">
                 <Link
-                  href={`/agent?agentId=${agent.id}`}
+                  href={`/live-agent/${agent.id}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-sm text-cyan-400 hover:underline"

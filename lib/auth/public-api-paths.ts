@@ -4,6 +4,8 @@ const PUBLIC_PLATFORM_API_PREFIXES = [
   "/api/platform/chat/history",
   "/api/platform/chat/stream",
   "/api/platform/chat/sync",
+  "/api/platform/chat/voice",
+  "/api/platform/calendar/meeting-types",
 ] as const;
 
 const PUBLIC_PLATFORM_API_EXACT = ["/api/platform/chat"] as const;

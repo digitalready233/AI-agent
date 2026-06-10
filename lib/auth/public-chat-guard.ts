@@ -21,25 +21,24 @@ function rateLimitPerMinute(): number {
   return Number.isFinite(n) && n > 0 ? n : 40;
 }
 
-/** When set, only this agent UUID is accepted on public chat APIs. */
-export function resolveAllowedPublicAgentId(requested: string): string {
+/**
+ * Resolve agent id for public embed/chat APIs.
+ * Any enabled agent UUID is allowed (validated per route via getAgent).
+ * Env vars are fallbacks when the client omits agentId.
+ */
+export function resolveAllowedPublicAgentId(requested: string | undefined): string {
   const trimmed = requested?.trim();
-  const allowlisted =
+  if (trimmed) return trimmed;
+
+  const fallback =
     process.env.PLATFORM_AGENT_ID?.trim() ||
     process.env.NEXT_PUBLIC_PLATFORM_AGENT_ID?.trim() ||
     "";
 
-  if (allowlisted) {
-    if (!trimmed || trimmed !== allowlisted) {
-      throw new PublicChatGuardError("This agent is not available for public chat.", 403);
-    }
-    return allowlisted;
-  }
-
-  if (!trimmed) {
+  if (!fallback) {
     throw new PublicChatGuardError("agentId is required.", 400);
   }
-  return trimmed;
+  return fallback;
 }
 
 export function assertPublicChatRateLimit(req: Request, sessionId: string): void {

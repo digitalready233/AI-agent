@@ -368,6 +368,11 @@ export function LiveAgentChat({
 
   const handleVoiceTurn = useCallback(
     (data: PlatformChatResponse & { transcript?: string }) => {
+      if (data.visitorToken) {
+        storeVisitorToken(sessionStorageKey(agentId), data.visitorToken);
+        setVisitorToken(data.visitorToken);
+      }
+
       const transcript = data.transcript?.trim();
       if (transcript) {
         setMessages((prev) => {
@@ -388,7 +393,7 @@ export function LiveAgentChat({
       applyPlatformResponse(data);
       setIsLoading(false);
     },
-    [applyPlatformResponse]
+    [agentId, applyPlatformResponse]
   );
 
   const handleVoiceError = useCallback((message: string) => {
@@ -407,6 +412,7 @@ export function LiveAgentChat({
   } = useLiveAgentVoice({
     sessionId,
     agentId,
+    visitorToken,
     enabled: voiceInputMode && !handoffActive && Boolean(sessionId),
     autoPlay: voiceOutputMode,
     onTurnComplete: handleVoiceTurn,

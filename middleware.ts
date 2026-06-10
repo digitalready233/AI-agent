@@ -54,6 +54,16 @@ function redirectToLogin(request: NextRequest, nextPath: string) {
   return response;
 }
 
+function unauthenticatedResponse(isProtectedApi: boolean, request: NextRequest, nextPath: string) {
+  if (isProtectedApi) {
+    return NextResponse.json(
+      { error: "Authentication required." },
+      { status: 401, headers: { "Cache-Control": "no-store" } }
+    );
+  }
+  return redirectToLogin(request, nextPath);
+}
+
 function isProtectedAppPath(pathname: string): boolean {
   return (
     pathname === "/dashboard" ||
@@ -93,7 +103,7 @@ export async function middleware(request: NextRequest) {
   if (!supabaseConfigured) {
     if (isPlatform || isProtectedApi) {
       if (!isAuthedDemo(request)) {
-        return redirectToLogin(request, pathname);
+        return unauthenticatedResponse(isProtectedApi, request, pathname);
       }
     }
     if (
@@ -114,6 +124,14 @@ export async function middleware(request: NextRequest) {
       clearSessionActivityCookie(response);
 
       if (isPlatform || isProtectedApi) {
+        if (isProtectedApi) {
+          const apiDenied = unauthenticatedResponse(true, request, pathname);
+          for (const cookie of response.cookies.getAll()) {
+            apiDenied.cookies.set(cookie.name, cookie.value);
+          }
+          clearSessionActivityCookie(apiDenied);
+          return apiDenied;
+        }
         const loginRedirect = redirectToLogin(request, pathname);
         for (const cookie of response.cookies.getAll()) {
           loginRedirect.cookies.set(cookie.name, cookie.value);
@@ -128,7 +146,7 @@ export async function middleware(request: NextRequest) {
     }
 
     if ((isPlatform || isProtectedApi) && !user) {
-      return redirectToLogin(request, pathname);
+      return unauthenticatedResponse(isProtectedApi, request, pathname);
     }
 
     if (

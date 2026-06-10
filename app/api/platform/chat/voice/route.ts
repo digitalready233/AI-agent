@@ -1,10 +1,19 @@
 import { z } from "zod";
 import { isLlmConfigured } from "@/lib/agent/llm-env";
+import {
+  PublicChatGuardError,
+  assertPublicChatRateLimit,
+  assertVisitorTokenForExistingChat,
+  guardResponseHeaders,
+  issueVisitorToken,
+  resolveAllowedPublicAgentId,
+} from "@/lib/auth/public-chat-guard";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import {
   findOrCreateConversationBySession,
   getAgent,
   getConversation,
+  getConversationBySession,
   listMessages,
   saveConversation,
   saveMessage,
@@ -42,13 +51,10 @@ function publicWorkflowError(err: WorkflowError): { error: string; code: string 
   return { error: err.message, code: err.code };
 }
 
-function resolvePlatformAgentId(bodyAgentId: string | undefined): string {
-  const fromBody = bodyAgentId?.trim();
-  if (fromBody) return fromBody;
-  return (
-    process.env.PLATFORM_AGENT_ID?.trim() ||
-    process.env.NEXT_PUBLIC_PLATFORM_AGENT_ID?.trim() ||
-    ""
+function publicChatErrorResponse(err: PublicChatGuardError): Response {
+  return guardResponseHeaders(
+    Response.json({ error: err.message }, { status: err.status }),
+    err.retryAfterSec
   );
 }
 
@@ -69,6 +75,7 @@ const jsonBodySchema = z.object({
 });
 
 async function runChatTurn(params: {
+  req: Request;
   sessionId: string;
   agentId: string;
   message: string;
@@ -82,9 +89,22 @@ async function runChatTurn(params: {
     return Response.json({ error: "Agent not found or disabled." }, { status: 404 });
   }
 
+  const visitorToken = issueVisitorToken(params.sessionId, params.agentId);
   const turnTimestamp = new Date().toISOString();
 
   const result = await withPlatformAdmin(async () => {
+    const existingConversation = await getConversationBySession(
+      agent.organization_id,
+      agent.id,
+      params.sessionId
+    );
+    assertVisitorTokenForExistingChat(
+      params.req,
+      params.sessionId,
+      params.agentId,
+      Boolean(existingConversation)
+    );
+
     const conversation = await findOrCreateConversationBySession({
       organizationId: agent.organization_id,
       agentId: agent.id,
@@ -156,6 +176,7 @@ async function runChatTurn(params: {
       inputMode: params.inputMode,
       transcript: params.inputMode === "audio" ? params.message : undefined,
       turnTimestamp,
+      visitorToken,
     });
   }
 
@@ -171,15 +192,16 @@ async function runChatTurn(params: {
     }
   }
 
-  return Response.json(
-    buildPlatformChatResponse(workflow, {
+  return Response.json({
+    ...buildPlatformChatResponse(workflow, {
       transcript: params.inputMode === "audio" ? params.message : undefined,
       inputMode: params.inputMode,
       audioBase64,
       audioMimeType,
       turnTimestamp,
-    })
-  );
+    }),
+    visitorToken,
+  });
 }
 
 export async function POST(req: Request) {
@@ -211,18 +233,22 @@ export async function POST(req: Request) {
     if (contentType.includes("multipart/form-data")) {
       const form = await req.formData();
       const sessionId = String(form.get("sessionId") ?? "").trim();
-      const agentId = resolvePlatformAgentId(String(form.get("agentId") ?? ""));
+      let agentId: string;
+      try {
+        agentId = resolveAllowedPublicAgentId(String(form.get("agentId") ?? ""));
+        if (!sessionId) {
+          throw new PublicChatGuardError("sessionId is required.", 400);
+        }
+        assertPublicChatRateLimit(req, sessionId);
+      } catch (err) {
+        if (err instanceof PublicChatGuardError) return publicChatErrorResponse(err);
+        throw err;
+      }
+
       const channel = String(form.get("channel") ?? "live_agent").trim();
       const includeTts =
         String(form.get("includeTts") ?? "true").toLowerCase() !== "false";
       const audio = form.get("audio");
-
-      if (!sessionId || !agentId) {
-        return Response.json(
-          { error: "sessionId and agentId are required." },
-          { status: 400 }
-        );
-      }
 
       if (!(audio instanceof Blob)) {
         return Response.json({ error: "audio file is required." }, { status: 400 });
@@ -253,6 +279,7 @@ export async function POST(req: Request) {
       }
 
       return runChatTurn({
+        req,
         sessionId,
         agentId,
         message: transcript,
@@ -267,9 +294,13 @@ export async function POST(req: Request) {
       return Response.json({ error: parsed.error.flatten() }, { status: 400 });
     }
 
-    const agentId = resolvePlatformAgentId(parsed.data.agentId);
-    if (!agentId) {
-      return Response.json({ error: "agentId is required." }, { status: 400 });
+    let agentId: string;
+    try {
+      agentId = resolveAllowedPublicAgentId(parsed.data.agentId);
+      assertPublicChatRateLimit(req, parsed.data.sessionId);
+    } catch (err) {
+      if (err instanceof PublicChatGuardError) return publicChatErrorResponse(err);
+      throw err;
     }
 
     const message = parsed.data.message?.trim();
@@ -281,6 +312,7 @@ export async function POST(req: Request) {
     }
 
     return runChatTurn({
+      req,
       sessionId: parsed.data.sessionId,
       agentId,
       message,
@@ -290,6 +322,7 @@ export async function POST(req: Request) {
       customerMetadata: parsed.data.customerMetadata,
     });
   } catch (err) {
+    if (err instanceof PublicChatGuardError) return publicChatErrorResponse(err);
     if (err instanceof WorkflowError) {
       const body = publicWorkflowError(err);
       return Response.json(body, { status: err.statusCode });

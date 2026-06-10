@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { visitorAuthHeaders } from "@/lib/auth/visitor-session-client";
 import type { PlatformChatResponseBody } from "@/lib/platform/chat/build-platform-chat-response";
 
 export type LiveAgentVoiceStatus =
@@ -22,6 +23,7 @@ function pickRecorderMime(): string {
 export function useLiveAgentVoice(params: {
   sessionId: string;
   agentId: string;
+  visitorToken?: string | null;
   enabled: boolean;
   autoPlay: boolean;
   onTurnComplete: (data: PlatformChatResponseBody & { transcript?: string }) => void;
@@ -106,10 +108,12 @@ export function useLiveAgentVoice(params: {
 
         const res = await fetch("/api/platform/chat/voice", {
           method: "POST",
+          headers: visitorAuthHeaders(params.visitorToken ?? null),
           body: form,
         });
         const data = (await res.json()) as PlatformChatResponseBody & {
           error?: string;
+          visitorToken?: string;
         };
 
         if (!res.ok) {
