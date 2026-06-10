@@ -13,6 +13,7 @@ import {
 import {
   clearVisitorToken,
   getStoredVisitorToken,
+  rotateVisitorSession,
   storeVisitorToken,
   visitorAuthHeaders,
 } from "@/lib/auth/visitor-session-client";
@@ -546,8 +547,11 @@ export function ChatWidget({
           { headers: visitorAuthHeaders(storedToken) }
         ).then(async (r) => {
           if (r.status === 401) {
-            localStorage.removeItem(SESSION_KEY);
-            clearVisitorToken(SESSION_KEY);
+            const newSid = rotateVisitorSession(
+              SESSION_KEY,
+              () => `sess_${crypto.randomUUID()}`
+            );
+            setSessionId(newSid);
             setVisitorToken(null);
             return { messages: [] };
           }

@@ -11,6 +11,23 @@ export type LiveAgentVoiceStatus =
   | "ai_speaking"
   | "error";
 
+async function measureBlobDuration(blob: Blob): Promise<number> {
+  if (typeof window === "undefined") return 0;
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(blob);
+    const audio = new Audio(url);
+    audio.onloadedmetadata = () => {
+      const duration = Number.isFinite(audio.duration) ? audio.duration : 0;
+      URL.revokeObjectURL(url);
+      resolve(duration);
+    };
+    audio.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve(0);
+    };
+  });
+}
+
 function pickRecorderMime(): string {
   if (typeof MediaRecorder === "undefined") return "audio/webm";
   const types = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/wav"];
@@ -26,7 +43,15 @@ export function useLiveAgentVoice(params: {
   visitorToken?: string | null;
   enabled: boolean;
   autoPlay: boolean;
-  onTurnComplete: (data: PlatformChatResponseBody & { transcript?: string }) => void;
+  /** Called on 401 — return a fresh session id to retry once (invalid visitor token). */
+  onSessionRotate?: () => string | null;
+  onTurnComplete: (
+    data: PlatformChatResponseBody & {
+      transcript?: string;
+      localAudioUrl?: string;
+      audioDurationSec?: number;
+    }
+  ) => void;
   onError: (message: string) => void;
 }) {
   const [status, setStatus] = useState<LiveAgentVoiceStatus>("idle");
@@ -99,22 +124,44 @@ export function useLiveAgentVoice(params: {
       if (!params.sessionId || !params.agentId) return;
       setStatus("processing");
       try {
-        const form = new FormData();
-        form.append("sessionId", params.sessionId);
-        form.append("agentId", params.agentId);
-        form.append("channel", "live_agent");
-        form.append("includeTts", "true");
-        form.append("audio", blob, "recording.webm");
+        const localAudioUrl = URL.createObjectURL(blob);
+        const audioDurationSec = await measureBlobDuration(blob);
 
-        const res = await fetch("/api/platform/chat/voice", {
-          method: "POST",
-          headers: visitorAuthHeaders(params.visitorToken ?? null),
-          body: form,
-        });
-        const data = (await res.json()) as PlatformChatResponseBody & {
-          error?: string;
-          visitorToken?: string;
+        const postVoice = async (
+          sessionId: string,
+          visitorToken: string | null | undefined
+        ) => {
+          const form = new FormData();
+          form.append("sessionId", sessionId);
+          form.append("agentId", params.agentId);
+          form.append("channel", "live_agent");
+          form.append("includeTts", "true");
+          form.append("audio", blob, "recording.webm");
+
+          const res = await fetch("/api/platform/chat/voice", {
+            method: "POST",
+            headers: visitorAuthHeaders(visitorToken ?? null),
+            body: form,
+          });
+          const data = (await res.json()) as PlatformChatResponseBody & {
+            error?: string;
+            visitorToken?: string;
+          };
+          return { res, data };
         };
+
+        let sessionId = params.sessionId;
+        let visitorToken = params.visitorToken ?? null;
+        let { res, data } = await postVoice(sessionId, visitorToken);
+
+        if (res.status === 401 && params.onSessionRotate) {
+          const rotated = params.onSessionRotate();
+          if (rotated) {
+            sessionId = rotated;
+            visitorToken = null;
+            ({ res, data } = await postVoice(sessionId, visitorToken));
+          }
+        }
 
         if (!res.ok) {
           throw new Error(
@@ -124,7 +171,12 @@ export function useLiveAgentVoice(params: {
           );
         }
 
-        params.onTurnComplete(data);
+        params.onTurnComplete({
+          ...data,
+          localAudioUrl,
+          audioDurationSec,
+          transcript: data.transcript,
+        });
         await playResponseAudio(
           data.reply ?? "",
           data.audioBase64,

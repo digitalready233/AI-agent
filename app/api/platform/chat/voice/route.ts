@@ -254,6 +254,29 @@ export async function POST(req: Request) {
         return Response.json({ error: "audio file is required." }, { status: 400 });
       }
 
+      try {
+        await withPlatformAdmin(async () => {
+          const agent = await getAgent(agentId);
+          if (!agent || !agent.enabled) {
+            throw new PublicChatGuardError("Agent not found or disabled.", 404);
+          }
+          const existingConversation = await getConversationBySession(
+            agent.organization_id,
+            agent.id,
+            sessionId
+          );
+          assertVisitorTokenForExistingChat(
+            req,
+            sessionId,
+            agentId,
+            Boolean(existingConversation)
+          );
+        });
+      } catch (err) {
+        if (err instanceof PublicChatGuardError) return publicChatErrorResponse(err);
+        throw err;
+      }
+
       const mimeType = audio.type || "audio/webm";
       const buffer = Buffer.from(await audio.arrayBuffer());
 
@@ -328,6 +351,10 @@ export async function POST(req: Request) {
       return Response.json(body, { status: err.statusCode });
     }
     console.error("[POST /api/platform/chat/voice]", err);
-    return Response.json({ error: "Voice chat failed" }, { status: 500 });
+    const message =
+      err instanceof Error && err.message.trim()
+        ? err.message
+        : "Voice chat failed. Please try again.";
+    return Response.json({ error: message }, { status: 500 });
   }
 }

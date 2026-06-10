@@ -1,0 +1,102 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  min-width: min(240px, 100%);
+}
+
+.player {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.playBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease, transform 0.12s ease;
+}
+
+.playBtn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.32);
+  transform: scale(1.04);
+}
+
+.playBtn:disabled {
+  cursor: default;
+  opacity: 0.85;
+}
+
+.waveform {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  height: 28px;
+}
+
+.bar,
+.barActive {
+  width: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.45);
+  flex-shrink: 0;
+}
+
+.barActive {
+  background: rgba(255, 255, 255, 0.95);
+  animation: voiceBarPulse 0.75s ease-in-out infinite alternate;
+}
+
+@keyframes voiceBarPulse {
+  from {
+    transform: scaleY(0.4);
+    opacity: 0.55;
+  }
+  to {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+.duration {
+  font-size: 0.7rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: rgba(255, 255, 255, 0.88);
+  flex-shrink: 0;
+  min-width: 2.25rem;
+  text-align: right;
+}
+
+.transcript {
+  margin: 0;
+  padding-top: 0.15rem;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.92);
+  white-space: pre-wrap;
+  word-break: break-word;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.transcriptLabel {
+  display: block;
+  margin-bottom: 0.2rem;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}

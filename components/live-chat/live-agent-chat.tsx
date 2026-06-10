@@ -25,10 +25,11 @@ import { resolveUiPipelineStage } from "@/lib/live-chat/pipeline-stages";
 import type { VisitorChatMessage } from "@/lib/platform/visitor-chat";
 import { LiveAgentBookingPanel } from "./live-agent-booking-panel";
 import { LiveAgentAudioControls } from "./live-agent-audio-controls";
+import { UserVoiceNote } from "./user-voice-note";
 import { useLiveAgentVoice } from "@/hooks/use-live-agent-voice";
 import {
-  clearVisitorToken,
   getStoredVisitorToken,
+  rotateVisitorSession,
   storeVisitorToken,
   visitorAuthHeaders,
 } from "@/lib/auth/visitor-session-client";
@@ -48,6 +49,8 @@ type ChatMessage = UiChatMessage & {
   inputMode?: "text" | "audio";
   audioBase64?: string | null;
   audioMimeType?: string | null;
+  localAudioUrl?: string;
+  audioDurationSec?: number;
   at?: string;
 };
 
@@ -367,7 +370,13 @@ export function LiveAgentChat({
   );
 
   const handleVoiceTurn = useCallback(
-    (data: PlatformChatResponse & { transcript?: string }) => {
+    (
+      data: PlatformChatResponse & {
+        transcript?: string;
+        localAudioUrl?: string;
+        audioDurationSec?: number;
+      }
+    ) => {
       if (data.visitorToken) {
         storeVisitorToken(sessionStorageKey(agentId), data.visitorToken);
         setVisitorToken(data.visitorToken);
@@ -385,6 +394,8 @@ export function LiveAgentChat({
               role: "user",
               content: transcript,
               inputMode: "audio",
+              localAudioUrl: data.localAudioUrl,
+              audioDurationSec: data.audioDurationSec,
               at: new Date().toISOString(),
             },
           ];
@@ -404,6 +415,20 @@ export function LiveAgentChat({
     setIsLoading(false);
   }, []);
 
+  const rotateSessionForAuth = useCallback(() => {
+    const storageKey = sessionStorageKey(agentId);
+    const newSid = rotateVisitorSession(
+      storageKey,
+      () => `live_${crypto.randomUUID()}`
+    );
+    setSessionId(newSid);
+    setVisitorToken(null);
+    setConversationId(undefined);
+    setHandoffActive(false);
+    setStaffJoined(false);
+    return newSid;
+  }, [agentId]);
+
   const {
     status: voiceStatus,
     recording,
@@ -415,6 +440,7 @@ export function LiveAgentChat({
     visitorToken,
     enabled: voiceInputMode && !handoffActive && Boolean(sessionId),
     autoPlay: voiceOutputMode,
+    onSessionRotate: rotateSessionForAuth,
     onTurnComplete: handleVoiceTurn,
     onError: handleVoiceError,
   });
@@ -482,9 +508,13 @@ export function LiveAgentChat({
         });
 
         if (historyRes.status === 401) {
-          localStorage.removeItem(storageKey);
-          clearVisitorToken(storageKey);
+          const newSid = rotateVisitorSession(
+            storageKey,
+            () => `live_${crypto.randomUUID()}`
+          );
+          setSessionId(newSid);
           setVisitorToken(null);
+          setConversationId(undefined);
         }
 
         const historyPayload = historyRes.ok
@@ -564,20 +594,35 @@ export function LiveAgentChat({
         const endpoint = voiceOutputMode
           ? "/api/platform/chat/voice"
           : "/api/platform/chat";
-        const res = await fetch(endpoint, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...visitorAuthHeaders(visitorToken),
-          },
-          body: JSON.stringify({
-            sessionId,
-            agentId,
-            message: trimmed,
-            channel: "live_agent",
-            includeTts: voiceOutputMode,
-          }),
-        });
+
+        const postChat = (sid: string, token: string | null) =>
+          fetch(endpoint, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...visitorAuthHeaders(token),
+            },
+            body: JSON.stringify({
+              sessionId: sid,
+              agentId,
+              message: trimmed,
+              channel: "live_agent",
+              includeTts: voiceOutputMode,
+            }),
+          });
+
+        let activeSessionId = sessionId;
+        let activeToken = visitorToken;
+        let res = await postChat(activeSessionId, activeToken);
+
+        if (res.status === 401) {
+          const rotated = rotateSessionForAuth();
+          if (rotated) {
+            activeSessionId = rotated;
+            activeToken = null;
+            res = await postChat(activeSessionId, activeToken);
+          }
+        }
 
         const data = (await res.json()) as PlatformChatResponse;
 
@@ -623,6 +668,7 @@ export function LiveAgentChat({
       applyPlatformResponse,
       isLoading,
       playResponseAudio,
+      rotateSessionForAuth,
       sessionId,
       visitorToken,
       voiceInputMode,
@@ -793,24 +839,34 @@ export function LiveAgentChat({
         </div>
         {voiceInputMode ? (
           <div className={styles.voiceRow}>
-            <button
-              type="button"
-              className={
-                recording ? `${styles.micBtn} ${styles.micBtnActive}` : styles.micBtn
-              }
-              disabled={isLoading || handoffActive || voiceStatus === "processing"}
-              onClick={() => void toggleRecording()}
-            >
-              {recording
-                ? "Stop & send"
-                : voiceStatus === "listening"
-                  ? "Listening…"
-                  : voiceStatus === "ai_speaking"
-                    ? "AI speaking…"
-                    : "Tap to speak"}
-            </button>
+            <div className={styles.voiceMicWrap}>
+              {recording ? <span className={styles.micPulse} aria-hidden /> : null}
+              <button
+                type="button"
+                className={
+                  recording ? `${styles.micCircle} ${styles.micCircleActive}` : styles.micCircle
+                }
+                disabled={isLoading || handoffActive || voiceStatus === "processing"}
+                onClick={() => void toggleRecording()}
+                aria-label={
+                  recording
+                    ? "Stop recording and send"
+                    : voiceStatus === "ai_speaking"
+                      ? "AI is speaking"
+                      : "Tap to record voice message"
+                }
+              >
+                <MicIcon recording={recording} speaking={voiceStatus === "ai_speaking"} />
+              </button>
+            </div>
             <p className={styles.voiceHint}>
-              Speak your answer — Whisper transcribes it, ReadyBot replies in text and audio.
+              {recording
+                ? "Recording… tap again to send"
+                : voiceStatus === "processing"
+                  ? "Transcribing your voice…"
+                  : voiceStatus === "ai_speaking"
+                    ? "Playing AI reply…"
+                    : "Tap the mic — your speech is transcribed and the AI replies"}
             </p>
           </div>
         ) : (
@@ -982,12 +1038,7 @@ function ChatBubble({
     <div className={`${className} ${styles.bubbleEnter}`}>
       {message.role !== "system" ? (
         <div className={styles.bubbleHeader}>
-          <p className={styles.bubbleLabel}>
-            {label}
-            {message.inputMode === "audio" ? (
-              <span className={styles.voiceBadge}> · voice</span>
-            ) : null}
-          </p>
+          <p className={styles.bubbleLabel}>{label}</p>
           {message.at ? (
             <time className={styles.bubbleTime} dateTime={message.at}>
               {formatMessageTime(message.at)}
@@ -995,7 +1046,16 @@ function ChatBubble({
           ) : null}
         </div>
       ) : null}
-      <p className={styles.bubbleText}>{renderBoldMarkdown(message.content)}</p>
+      {message.role === "user" && message.inputMode === "audio" ? (
+        <UserVoiceNote
+          audioUrl={message.localAudioUrl}
+          durationSec={message.audioDurationSec}
+          transcript={message.content}
+          playable={Boolean(message.localAudioUrl)}
+        />
+      ) : (
+        <p className={styles.bubbleText}>{renderBoldMarkdown(message.content)}</p>
+      )}
       {message.role === "assistant" && voiceOutputMode ? (
         <LiveAgentAudioControls
           text={message.content}
@@ -1015,6 +1075,50 @@ function renderBoldMarkdown(text: string): ReactNode {
     }
     return <span key={i}>{part}</span>;
   });
+}
+
+function MicIcon({
+  recording,
+  speaking,
+}: {
+  recording: boolean;
+  speaking: boolean;
+}) {
+  if (speaking) {
+    return (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+        <path
+          d="M8 9.5v5M12 7v10M16 9.5v5"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+      </svg>
+    );
+  }
+  if (recording) {
+    return (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+        <rect x="6" y="6" width="12" height="12" rx="2" />
+      </svg>
+    );
+  }
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M12 14a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v5a3 3 0 0 0 3 3Z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      <path
+        d="M19 11a7 7 0 0 1-14 0M12 18v3"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
 }
 
 function formatMessageTime(iso: string): string {
