@@ -10,6 +10,12 @@ import {
   useRef,
   useState,
 } from "react";
+import {
+  clearVisitorToken,
+  getStoredVisitorToken,
+  storeVisitorToken,
+  visitorAuthHeaders,
+} from "@/lib/auth/visitor-session-client";
 import { visitorToUiMessages } from "@/lib/chat/visitor-message-ui";
 import { useVisitorHandoffSync } from "@/hooks/use-visitor-handoff-sync";
 import type { VisitorChatMessage } from "@/lib/platform/visitor-chat";
@@ -41,6 +47,7 @@ function getOrCreateSessionId(): string {
 export function clearWebsiteChatSession(): void {
   if (typeof window === "undefined") return;
   localStorage.removeItem(SESSION_KEY);
+  clearVisitorToken(SESSION_KEY);
 }
 
 export type ChatWidgetVariant = "floating" | "embed" | "workspace" | "live";
@@ -320,6 +327,7 @@ function PlatformChatPanel({
   agentConfig,
   initialMessages,
   initialHandoffActive,
+  initialVisitorToken,
   variant,
 }: {
   sessionId: string;
@@ -327,9 +335,13 @@ function PlatformChatPanel({
   agentConfig: AgentChatConfig | null;
   initialMessages: PanelMessage[];
   initialHandoffActive?: boolean;
+  initialVisitorToken?: string | null;
   variant: ChatWidgetVariant;
 }) {
   const [messages, setMessages] = useState<PanelMessage[]>(initialMessages);
+  const [visitorToken, setVisitorToken] = useState<string | null>(
+    initialVisitorToken ?? null
+  );
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [handoffActive, setHandoffActive] = useState(Boolean(initialHandoffActive));
@@ -351,6 +363,7 @@ function PlatformChatPanel({
   const { refresh: refreshHandoff } = useVisitorHandoffSync({
     sessionId,
     agentId,
+    visitorToken,
     enabled: handoffActive,
     localMessages: messages.map((m) => ({
       id: m.id,
@@ -384,7 +397,10 @@ function PlatformChatPanel({
       try {
         const res = await fetch("/api/platform/chat", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            ...visitorAuthHeaders(visitorToken),
+          },
           body: JSON.stringify({
             sessionId,
             agentId,
@@ -399,6 +415,11 @@ function PlatformChatPanel({
               ? data.error
               : "Message failed. Please try again.";
           throw new Error(errMsg);
+        }
+
+        if (typeof data.visitorToken === "string" && data.visitorToken) {
+          storeVisitorToken(SESSION_KEY, data.visitorToken);
+          setVisitorToken(data.visitorToken);
         }
 
         if (data.staffHandling) {
@@ -452,7 +473,15 @@ function PlatformChatPanel({
         setIsLoading(false);
       }
     },
-    [agentId, applySyncMessages, channel, isLoading, refreshHandoff, sessionId]
+    [
+      agentId,
+      applySyncMessages,
+      channel,
+      isLoading,
+      refreshHandoff,
+      sessionId,
+      visitorToken,
+    ]
   );
 
   return (
@@ -495,6 +524,7 @@ export function ChatWidget({
   const usePlatform = Boolean(resolvedAgentId);
 
   const [sessionId, setSessionId] = useState("");
+  const [visitorToken, setVisitorToken] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
   const [initialMessages, setInitialMessages] = useState<PanelMessage[]>([]);
   const [initialHandoffActive, setInitialHandoffActive] = useState(false);
@@ -502,7 +532,9 @@ export function ChatWidget({
 
   useEffect(() => {
     const sid = getOrCreateSessionId();
+    const storedToken = getStoredVisitorToken(SESSION_KEY);
     setSessionId(sid);
+    setVisitorToken(storedToken);
 
     if (usePlatform) {
       Promise.all([
@@ -510,8 +542,17 @@ export function ChatWidget({
           `/api/platform/chat/agent?agentId=${encodeURIComponent(resolvedAgentId)}`
         ).then((r) => (r.ok ? r.json() : null)),
         fetch(
-          `/api/platform/chat/history?sessionId=${encodeURIComponent(sid)}&agentId=${encodeURIComponent(resolvedAgentId)}`
-        ).then((r) => (r.ok ? r.json() : { messages: [] })),
+          `/api/platform/chat/history?sessionId=${encodeURIComponent(sid)}&agentId=${encodeURIComponent(resolvedAgentId)}`,
+          { headers: visitorAuthHeaders(storedToken) }
+        ).then(async (r) => {
+          if (r.status === 401) {
+            localStorage.removeItem(SESSION_KEY);
+            clearVisitorToken(SESSION_KEY);
+            setVisitorToken(null);
+            return { messages: [] };
+          }
+          return r.ok ? r.json() : { messages: [] };
+        }),
       ])
         .then(([agentPayload, history]) => {
           if (agentPayload?.name) {
@@ -629,6 +670,7 @@ export function ChatWidget({
         agentConfig={agentConfig}
         initialMessages={initialMessages}
         initialHandoffActive={initialHandoffActive}
+        initialVisitorToken={visitorToken}
         variant={variant}
       />
     );

@@ -1,3 +1,10 @@
+import {
+  PublicChatGuardError,
+  assertPublicChatRateLimit,
+  assertVisitorTokenForExistingChat,
+  guardResponseHeaders,
+  resolveAllowedPublicAgentId,
+} from "@/lib/auth/public-chat-guard";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import {
   getAgent,
@@ -7,6 +14,13 @@ import {
 import { hasServiceRoleKey, withPlatformAdmin } from "@/lib/platform/db";
 import { mapConversationToVisitorSync } from "@/lib/platform/visitor-chat";
 
+function publicChatErrorResponse(err: PublicChatGuardError): Response {
+  return guardResponseHeaders(
+    Response.json({ error: err.message }, { status: err.status }),
+    err.retryAfterSec
+  );
+}
+
 export async function GET(req: Request) {
   if (!isSupabaseConfigured() || !hasServiceRoleKey()) {
     return Response.json({ messages: [] });
@@ -15,14 +29,18 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const sessionId = searchParams.get("sessionId")?.trim();
   const fromQuery = searchParams.get("agentId")?.trim();
-  const agentId =
-    fromQuery ||
-    process.env.NEXT_PUBLIC_PLATFORM_AGENT_ID?.trim() ||
-    process.env.PLATFORM_AGENT_ID?.trim() ||
-    "";
 
-  if (!sessionId || !agentId) {
+  if (!sessionId) {
     return Response.json({ messages: [] });
+  }
+
+  let agentId: string;
+  try {
+    agentId = resolveAllowedPublicAgentId(fromQuery || "");
+    assertPublicChatRateLimit(req, sessionId);
+  } catch (err) {
+    if (err instanceof PublicChatGuardError) return publicChatErrorResponse(err);
+    throw err;
   }
 
   try {
@@ -36,6 +54,8 @@ export async function GET(req: Request) {
         sessionId
       );
       if (!conversation) return { messages: [] };
+
+      assertVisitorTokenForExistingChat(req, sessionId, agentId, true);
 
       const rows = await listMessages(conversation.id);
       const sync = mapConversationToVisitorSync(conversation, rows);
@@ -52,6 +72,7 @@ export async function GET(req: Request) {
 
     return Response.json(payload);
   } catch (err) {
+    if (err instanceof PublicChatGuardError) return publicChatErrorResponse(err);
     console.error("[GET /api/platform/chat/history]", err);
     return Response.json({ messages: [] });
   }

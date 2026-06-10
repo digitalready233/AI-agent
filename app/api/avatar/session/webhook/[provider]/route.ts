@@ -13,12 +13,7 @@ export async function POST(
     return Response.json({ ok: true, ignored: true });
   }
 
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    body = {};
-  }
+  const rawBody = await req.text();
 
   const headers: Record<string, string> = {};
   req.headers.forEach((v, k) => {
@@ -26,19 +21,44 @@ export async function POST(
   });
 
   if (provider === "did") {
+    const { verifyDidWebhookRequest } = await import("@/lib/avatar/webhook-verify");
+    const verified = verifyDidWebhookRequest(req, rawBody);
+    if (!verified.ok) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    let body: Record<string, unknown>;
+    try {
+      body = JSON.parse(rawBody) as Record<string, unknown>;
+    } catch {
+      body = {};
+    }
     const { handleDidWebhookPayload } = await import("@/lib/avatar/did-webhook");
-    const didResult = await handleDidWebhookPayload(
-      (body ?? {}) as Record<string, unknown>
-    );
+    const didResult = await handleDidWebhookPayload(body);
     return Response.json({ ok: true, matched: didResult.matched });
   }
 
   if (provider === "tavus") {
+    const { verifyTavusWebhookRequest } = await import("@/lib/avatar/webhook-verify");
+    const verified = verifyTavusWebhookRequest(req, rawBody);
+    if (!verified.ok) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    let body: Record<string, unknown>;
+    try {
+      body = JSON.parse(rawBody) as Record<string, unknown>;
+    } catch {
+      body = {};
+    }
     const { handleTavusWebhookPayload } = await import("@/lib/avatar/tavus-webhook");
-    const tavusResult = await handleTavusWebhookPayload(
-      (body ?? {}) as Record<string, unknown>
-    );
+    const tavusResult = await handleTavusWebhookPayload(body);
     return Response.json({ ok: true, matched: tavusResult.matched });
+  }
+
+  let body: unknown;
+  try {
+    body = JSON.parse(rawBody);
+  } catch {
+    body = {};
   }
 
   const result = await adapter.handleAvatarWebhook!(

@@ -26,6 +26,12 @@ import type { VisitorChatMessage } from "@/lib/platform/visitor-chat";
 import { LiveAgentBookingPanel } from "./live-agent-booking-panel";
 import { LiveAgentAudioControls } from "./live-agent-audio-controls";
 import { useLiveAgentVoice } from "@/hooks/use-live-agent-voice";
+import {
+  clearVisitorToken,
+  getStoredVisitorToken,
+  storeVisitorToken,
+  visitorAuthHeaders,
+} from "@/lib/auth/visitor-session-client";
 import type { PlatformChatResponseBody } from "@/lib/platform/chat/build-platform-chat-response";
 import { readybotMicroStepLabel } from "@/lib/platform/workflow/readybot-micro-steps";
 import styles from "./live-agent-chat.module.css";
@@ -46,6 +52,7 @@ type ChatMessage = UiChatMessage & {
 };
 
 type PlatformChatResponse = PlatformChatResponseBody & {
+  visitorToken?: string;
   staffHandling?: boolean;
   staffJoined?: boolean;
   status?: string;
@@ -217,6 +224,7 @@ export function LiveAgentChat({
   const [loadError, setLoadError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
   const [sessionId, setSessionId] = useState("");
+  const [visitorToken, setVisitorToken] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -273,6 +281,7 @@ export function LiveAgentChat({
   const { refresh: refreshHandoff } = useVisitorHandoffSync({
     sessionId,
     agentId,
+    visitorToken,
     enabled: handoffPollEnabled,
     localMessages: messages.map((m) => ({
       id: m.id,
@@ -427,8 +436,11 @@ export function LiveAgentChat({
   }, [messages, isLoading, handoffActive]);
 
   useEffect(() => {
+    const storageKey = sessionStorageKey(agentId);
     const sid = getOrCreateSessionId(agentId);
+    const storedToken = getStoredVisitorToken(storageKey);
     setSessionId(sid);
+    setVisitorToken(storedToken);
 
     let cancelled = false;
 
@@ -437,7 +449,8 @@ export function LiveAgentChat({
         const [agentRes, historyRes] = await Promise.all([
           fetch(`/api/platform/chat/agent?agentId=${encodeURIComponent(agentId)}`),
           fetch(
-            `/api/platform/chat/history?sessionId=${encodeURIComponent(sid)}&agentId=${encodeURIComponent(agentId)}`
+            `/api/platform/chat/history?sessionId=${encodeURIComponent(sid)}&agentId=${encodeURIComponent(agentId)}`,
+            { headers: visitorAuthHeaders(storedToken) }
           ),
         ]);
 
@@ -461,6 +474,12 @@ export function LiveAgentChat({
           companyProductName: agentPayload.companyProductName,
           welcomeMessage: agentPayload.welcomeMessage,
         });
+
+        if (historyRes.status === 401) {
+          localStorage.removeItem(storageKey);
+          clearVisitorToken(storageKey);
+          setVisitorToken(null);
+        }
 
         const historyPayload = historyRes.ok
           ? await historyRes.json()
@@ -541,7 +560,10 @@ export function LiveAgentChat({
           : "/api/platform/chat";
         const res = await fetch(endpoint, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            ...visitorAuthHeaders(visitorToken),
+          },
           body: JSON.stringify({
             sessionId,
             agentId,
@@ -559,6 +581,11 @@ export function LiveAgentChat({
               ? data.error
               : "Message could not be sent. Please try again."
           );
+        }
+
+        if (data.visitorToken) {
+          storeVisitorToken(sessionStorageKey(agentId), data.visitorToken);
+          setVisitorToken(data.visitorToken);
         }
 
         applyPlatformResponse(data);
@@ -591,6 +618,7 @@ export function LiveAgentChat({
       isLoading,
       playResponseAudio,
       sessionId,
+      visitorToken,
       voiceInputMode,
       voiceOutputMode,
     ]

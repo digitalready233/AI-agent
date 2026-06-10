@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { isProductionRuntime } from "@/lib/security/production";
 
 export function verifyWhatsAppWebhookSignature(params: {
   rawBody: string;
@@ -9,6 +10,10 @@ export function verifyWhatsAppWebhookSignature(params: {
     params.appSecret?.trim() || process.env.WHATSAPP_APP_SECRET?.trim() || null;
 
   if (!secret) {
+    if (isProductionRuntime()) {
+      console.error("[whatsapp] WHATSAPP_APP_SECRET required in production");
+      return { valid: false, skipped: false };
+    }
     console.warn(
       "[whatsapp] WHATSAPP_APP_SECRET not set — webhook signature verification skipped"
     );

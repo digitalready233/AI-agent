@@ -66,11 +66,32 @@ export async function GET(req: NextRequest) {
     }
 
     const meta = tx.metadata ?? {};
+    const orgFromMeta =
+      typeof meta.organization_id === "string" ? meta.organization_id.trim() : "";
+    if (!orgFromMeta || orgFromMeta !== session.organization.id) {
+      return NextResponse.json(
+        { error: "Payment reference does not belong to this organization." },
+        { status: 403 }
+      );
+    }
+
     const planName =
       typeof meta.plan_name === "string" ? meta.plan_name : "Growth";
     const agentsAllowed = Number(meta.agents_allowed) || 10;
 
     const settings = await getOrganizationSettings(session.organization.id);
+
+    if (
+      settings.billing.paystack_reference === reference &&
+      settings.billing.subscription_status === "active"
+    ) {
+      return NextResponse.json({
+        status: "success",
+        verified: true,
+        planName: settings.billing.plan_name ?? planName,
+        alreadyApplied: true,
+      });
+    }
     await patchOrganizationSettingsSection(session.organization.id, "billing", {
       ...settings.billing,
       plan_name: planName,

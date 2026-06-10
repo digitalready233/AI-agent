@@ -207,7 +207,8 @@ export async function handleDemoSessionJoin(
 
 export async function handleDemoSessionToken(
   sessionId: string,
-  body: { identity?: string; name?: string; role?: "prospect" | "staff" }
+  body: { identity?: string; name?: string; role?: "prospect" | "staff" },
+  options?: { authenticatedStaffOrgId?: string | null }
 ) {
   const session = await getDemoSession(sessionId);
   if (!session) return { status: 404 as const, body: { error: "Demo not found" } };
@@ -215,7 +216,21 @@ export async function handleDemoSessionToken(
   const providerSettings = await getDemoProviderSettings(session.organization_id);
   const identity = body.identity?.trim() || `guest-${sessionId.slice(0, 8)}`;
   const name = body.name?.trim() || "Guest";
-  const role = body.role ?? "prospect";
+  const requestedRole = body.role ?? "prospect";
+
+  if (requestedRole === "staff") {
+    if (
+      !options?.authenticatedStaffOrgId ||
+      options.authenticatedStaffOrgId !== session.organization_id
+    ) {
+      return {
+        status: 403 as const,
+        body: { error: "Staff LiveKit tokens require platform authentication." },
+      };
+    }
+  }
+
+  const role = requestedRole === "staff" ? "staff" : "prospect";
 
   const useLiveKit =
     shouldUseLiveKitVideo(session) || orgLiveKitVideoEnabled(providerSettings);

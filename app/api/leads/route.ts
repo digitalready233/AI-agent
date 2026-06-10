@@ -1,15 +1,10 @@
 import { captureLead } from "@/lib/leads/capture";
+import { checkAdminApiAuth } from "@/lib/security/admin-auth";
 import { ensureLeadsHydrated, listLeads } from "@/lib/store";
 import type { Channel, CustomerType, LeadStatus } from "@/lib/types";
 
-function checkAdmin(req: Request): boolean {
-  const secret = process.env.ADMIN_API_SECRET;
-  if (!secret) return true;
-  return req.headers.get("authorization") === `Bearer ${secret}`;
-}
-
 export async function GET(req: Request) {
-  if (!checkAdmin(req)) {
+  if (!checkAdminApiAuth(req)) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
   await ensureLeadsHydrated();

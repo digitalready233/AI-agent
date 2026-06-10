@@ -1,25 +1,28 @@
 import { NextRequest } from "next/server";
 import { runCampaignScheduler } from "@/lib/platform/campaign-scheduler";
+import { isProductionRuntime } from "@/lib/security/production";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
  * Scheduled campaign processor.
- * - Vercel Cron: add CRON_SECRET to project env; `vercel.json` schedules this route.
- * - Manual/local: GET /api/cron/campaigns?secret=YOUR_CRON_SECRET
+ * Production: requires `Authorization: Bearer CRON_SECRET` (no query-string or header bypass).
+ * Local dev: optional secret — omit CRON_SECRET to allow unauthenticated runs.
  */
 export async function GET(req: NextRequest) {
   const secret = process.env.CRON_SECRET?.trim();
+
+  if (isProductionRuntime() && !secret) {
+    return Response.json(
+      { error: "CRON_SECRET must be configured in production." },
+      { status: 503 }
+    );
+  }
+
   if (secret) {
     const auth = req.headers.get("authorization");
-    const querySecret = req.nextUrl.searchParams.get("secret");
-    const vercelCron = req.headers.get("x-vercel-cron");
-    const authorized =
-      auth === `Bearer ${secret}` ||
-      querySecret === secret ||
-      vercelCron === "1";
-    if (!authorized) {
+    if (auth !== `Bearer ${secret}`) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
   }

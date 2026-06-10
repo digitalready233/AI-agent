@@ -4,6 +4,14 @@ import { NextResponse, type NextRequest } from "next/server";
 import { LOGIN_PATH, safeNextPath } from "@/lib/auth/login-url";
 import { isPublicPlatformApiPath } from "@/lib/auth/public-api-paths";
 import {
+  billingBypassed,
+  hasActiveAccess,
+  isBillingEnforced,
+} from "@/lib/billing/access-client";
+import { isBillingExemptApiPath } from "@/lib/billing/api-access";
+import { isBillingExemptRole } from "@/lib/billing/exempt";
+import type { BillingSettings } from "@/lib/platform/settings-types";
+import {
   clearSessionActivityCookie,
   isSessionIdleExpired,
 } from "@/lib/auth/session-inactivity-server";
@@ -121,6 +129,36 @@ export async function middleware(request: NextRequest) {
 
     if ((isPlatform || isProtectedApi) && !user) {
       return redirectToLogin(request, pathname);
+    }
+
+    if (
+      user &&
+      isProtectedApi &&
+      isBillingEnforced() &&
+      !billingBypassed() &&
+      !isBillingExemptApiPath(pathname)
+    ) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role, organization_id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (profile && !isBillingExemptRole(profile.role)) {
+        const { data: settings } = await supabase
+          .from("organization_settings")
+          .select("billing")
+          .eq("organization_id", profile.organization_id)
+          .maybeSingle();
+
+        const billing = (settings?.billing ?? {}) as BillingSettings;
+        if (!hasActiveAccess(billing)) {
+          return NextResponse.json(
+            { error: "Active subscription or trial required." },
+            { status: 402 }
+          );
+        }
+      }
     }
 
     if (

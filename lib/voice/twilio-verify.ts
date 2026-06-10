@@ -1,4 +1,5 @@
 import twilio from "twilio";
+import { isProductionRuntime } from "@/lib/security/production";
 import { getTwilioAuthToken } from "./credentials";
 
 function getTwilioWebhookUrl(req: Request): string {
@@ -29,7 +30,13 @@ export async function verifyTwilioSignatureForOrg(
   if (!token) {
     token = process.env.TWILIO_AUTH_TOKEN?.trim() ?? null;
   }
-  if (!token) return true;
+  if (!token) {
+    if (isProductionRuntime()) {
+      console.error("[twilio] auth token required for webhook verification in production");
+      return false;
+    }
+    return true;
+  }
 
   const signature = req.headers.get("X-Twilio-Signature");
   if (!signature) return false;

@@ -1,10 +1,19 @@
 import { z } from "zod";
 import { isLlmConfigured } from "@/lib/agent/llm-env";
+import {
+  PublicChatGuardError,
+  assertPublicChatRateLimit,
+  assertVisitorTokenForExistingChat,
+  guardResponseHeaders,
+  issueVisitorToken,
+  resolveAllowedPublicAgentId,
+} from "@/lib/auth/public-chat-guard";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import {
   findOrCreateConversationBySession,
   getAgent,
   getConversation,
+  getConversationBySession,
   listMessages,
   saveConversation,
   saveMessage,
@@ -56,13 +65,10 @@ const bodySchema = z.object({
     .optional(),
 });
 
-function resolvePlatformAgentId(bodyAgentId: string | undefined): string {
-  const fromBody = bodyAgentId?.trim();
-  if (fromBody) return fromBody;
-  return (
-    process.env.PLATFORM_AGENT_ID?.trim() ||
-    process.env.NEXT_PUBLIC_PLATFORM_AGENT_ID?.trim() ||
-    ""
+function publicChatErrorResponse(err: PublicChatGuardError): Response {
+  return guardResponseHeaders(
+    Response.json({ error: err.message }, { status: err.status }),
+    err.retryAfterSec
   );
 }
 
@@ -94,17 +100,36 @@ export async function POST(req: Request) {
     return Response.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
-  const agentId = resolvePlatformAgentId(parsed.data.agentId);
-  if (!agentId) {
-    return Response.json({ error: "agentId is required." }, { status: 400 });
+  let agentId: string;
+  try {
+    agentId = resolveAllowedPublicAgentId(parsed.data.agentId);
+    assertPublicChatRateLimit(req, parsed.data.sessionId);
+  } catch (err) {
+    if (err instanceof PublicChatGuardError) return publicChatErrorResponse(err);
+    throw err;
   }
+
   const agent = await withPlatformAdmin(() => getAgent(agentId));
   if (!agent || !agent.enabled) {
     return Response.json({ error: "Agent not found or disabled." }, { status: 404 });
   }
 
+  const visitorToken = issueVisitorToken(parsed.data.sessionId, agentId);
+
   try {
     const result = await withPlatformAdmin(async () => {
+      const existingConversation = await getConversationBySession(
+        agent.organization_id,
+        agent.id,
+        parsed.data.sessionId
+      );
+      assertVisitorTokenForExistingChat(
+        req,
+        parsed.data.sessionId,
+        agentId,
+        Boolean(existingConversation)
+      );
+
       const conversation = await findOrCreateConversationBySession({
         organizationId: agent.organization_id,
         agentId: agent.id,
@@ -168,12 +193,17 @@ export async function POST(req: Request) {
         status: result.sync.status,
         reply: result.ack,
         messages: result.sync.messages,
+        visitorToken,
       });
     }
 
     const workflow = result as RunAgentWorkflowResult;
-    return Response.json(buildPlatformChatResponse(workflow));
+    return Response.json({
+      ...buildPlatformChatResponse(workflow),
+      visitorToken,
+    });
   } catch (err) {
+    if (err instanceof PublicChatGuardError) return publicChatErrorResponse(err);
     if (err instanceof WorkflowError) {
       const body = publicWorkflowError(err);
       return Response.json(body, { status: err.statusCode });

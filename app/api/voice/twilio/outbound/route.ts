@@ -28,14 +28,16 @@ export async function POST(req: Request) {
   }
 
   const call = await getCallByPrimaryId(callId);
-  if (call) {
-    const ok = await verifyTwilioSignatureForOrg(
-      req,
-      params,
-      call.organization_id
-    );
-    if (!ok) return new Response("Forbidden", { status: 403 });
+  if (!call) {
+    return new Response("Not found", { status: 404 });
   }
+
+  const ok = await verifyTwilioSignatureForOrg(
+    req,
+    params,
+    call.organization_id
+  );
+  if (!ok) return new Response("Forbidden", { status: 403 });
 
   const origin = appOrigin(req);
   const speech = params.SpeechResult?.trim();

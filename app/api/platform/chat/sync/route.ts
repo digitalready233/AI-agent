@@ -1,14 +1,18 @@
+import {
+  PublicChatGuardError,
+  assertPublicChatRateLimit,
+  assertVisitorTokenForExistingChat,
+  guardResponseHeaders,
+  resolveAllowedPublicAgentId,
+} from "@/lib/auth/public-chat-guard";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { hasServiceRoleKey, withPlatformAdmin } from "@/lib/platform/db";
 import { loadVisitorChatSync } from "@/lib/platform/visitor-chat-sync";
 
-function resolveAgentId(fromQuery: string | null): string {
-  const trimmed = fromQuery?.trim();
-  if (trimmed) return trimmed;
-  return (
-    process.env.NEXT_PUBLIC_PLATFORM_AGENT_ID?.trim() ||
-    process.env.PLATFORM_AGENT_ID?.trim() ||
-    ""
+function publicChatErrorResponse(err: PublicChatGuardError): Response {
+  return guardResponseHeaders(
+    Response.json({ error: err.message }, { status: err.status }),
+    err.retryAfterSec
   );
 }
 
@@ -20,13 +24,23 @@ export async function GET(req: Request) {
 
   const { searchParams } = new URL(req.url);
   const sessionId = searchParams.get("sessionId")?.trim();
-  const agentId = resolveAgentId(searchParams.get("agentId"));
+  const fromQuery = searchParams.get("agentId")?.trim();
 
-  if (!sessionId || !agentId) {
+  if (!sessionId) {
     return Response.json(
       { error: "sessionId and agentId are required." },
       { status: 400 }
     );
+  }
+
+  let agentId: string;
+  try {
+    agentId = resolveAllowedPublicAgentId(fromQuery || "");
+    assertPublicChatRateLimit(req, sessionId);
+    assertVisitorTokenForExistingChat(req, sessionId, agentId, true);
+  } catch (err) {
+    if (err instanceof PublicChatGuardError) return publicChatErrorResponse(err);
+    throw err;
   }
 
   try {
@@ -40,6 +54,7 @@ export async function GET(req: Request) {
 
     return Response.json(payload);
   } catch (err) {
+    if (err instanceof PublicChatGuardError) return publicChatErrorResponse(err);
     console.error("[GET /api/platform/chat/sync]", err);
     return Response.json({ error: "Sync failed." }, { status: 500 });
   }

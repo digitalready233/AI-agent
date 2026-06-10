@@ -1,3 +1,9 @@
+import {
+  PublicChatGuardError,
+  assertPublicChatRateLimit,
+  assertVisitorTokenForExistingChat,
+  resolveAllowedPublicAgentId,
+} from "@/lib/auth/public-chat-guard";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { hasServiceRoleKey, withPlatformAdmin } from "@/lib/platform/db";
 import {
@@ -13,16 +19,6 @@ export const maxDuration = 300;
 
 const TICK_MS = 2_000;
 const HEARTBEAT_MS = 15_000;
-
-function resolveAgentId(fromQuery: string | null): string {
-  const trimmed = fromQuery?.trim();
-  if (trimmed) return trimmed;
-  return (
-    process.env.NEXT_PUBLIC_PLATFORM_AGENT_ID?.trim() ||
-    process.env.PLATFORM_AGENT_ID?.trim() ||
-    ""
-  );
-}
 
 function sleep(ms: number, signal: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
@@ -49,13 +45,25 @@ export async function GET(req: Request) {
 
   const { searchParams } = new URL(req.url);
   const sessionId = searchParams.get("sessionId")?.trim();
-  const agentId = resolveAgentId(searchParams.get("agentId"));
+  const fromQuery = searchParams.get("agentId")?.trim();
 
-  if (!sessionId || !agentId) {
+  if (!sessionId) {
     return Response.json(
       { error: "sessionId and agentId are required." },
       { status: 400 }
     );
+  }
+
+  let agentId: string;
+  try {
+    agentId = resolveAllowedPublicAgentId(fromQuery || "");
+    assertPublicChatRateLimit(req, sessionId);
+    assertVisitorTokenForExistingChat(req, sessionId, agentId, true);
+  } catch (err) {
+    if (err instanceof PublicChatGuardError) {
+      return Response.json({ error: err.message }, { status: err.status });
+    }
+    throw err;
   }
 
   const encoder = new TextEncoder();

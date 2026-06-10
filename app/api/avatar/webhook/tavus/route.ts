@@ -1,9 +1,16 @@
 import { handleTavusWebhookPayload } from "@/lib/avatar/tavus-webhook";
+import { verifyTavusWebhookRequest } from "@/lib/avatar/webhook-verify";
 
 export async function POST(req: Request) {
+  const rawBody = await req.text();
+  const verified = verifyTavusWebhookRequest(req, rawBody);
+  if (!verified.ok) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   let body: Record<string, unknown>;
   try {
-    body = (await req.json()) as Record<string, unknown>;
+    body = JSON.parse(rawBody) as Record<string, unknown>;
   } catch {
     body = {};
   }

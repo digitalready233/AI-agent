@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, type MutableRefObject } from "react";
+import { visitorAuthHeaders } from "@/lib/auth/visitor-session-client";
 import {
   mergeVisitorChatMessages,
   VISITOR_HANDOFF_POLL_MS,
@@ -34,6 +35,7 @@ function applyPayloadToCallbacks(
 export function useVisitorHandoffSync(params: {
   sessionId: string;
   agentId: string;
+  visitorToken?: string | null;
   enabled: boolean;
   onSync: (payload: VisitorChatSyncPayload) => void;
   onMessages?: (messages: VisitorChatMessage[]) => void;
@@ -45,6 +47,7 @@ export function useVisitorHandoffSync(params: {
   const {
     sessionId,
     agentId,
+    visitorToken,
     enabled,
     onSync,
     onMessages,
@@ -90,12 +93,15 @@ export function useVisitorHandoffSync(params: {
     if (!sessionId || !agentId) return;
 
     const qs = new URLSearchParams({ sessionId, agentId });
-    const res = await fetch(`/api/platform/chat/sync?${qs.toString()}`);
+    if (visitorToken) qs.set("visitorToken", visitorToken);
+    const res = await fetch(`/api/platform/chat/sync?${qs.toString()}`, {
+      headers: visitorAuthHeaders(visitorToken ?? null),
+    });
     if (!res.ok) return;
 
     const payload = (await res.json()) as VisitorChatSyncPayload;
     dispatchPayload(payload);
-  }, [sessionId, agentId, dispatchPayload]);
+  }, [sessionId, agentId, visitorToken, dispatchPayload]);
 
   useEffect(() => {
     if (!enabled || !sessionId || !agentId) {
@@ -124,6 +130,7 @@ export function useVisitorHandoffSync(params: {
 
     const startSse = () => {
       const qs = new URLSearchParams({ sessionId, agentId });
+      if (visitorToken) qs.set("visitorToken", visitorToken);
       eventSource = new EventSource(
         `/api/platform/chat/stream?${qs.toString()}`
       );
@@ -180,6 +187,7 @@ export function useVisitorHandoffSync(params: {
     enabled,
     sessionId,
     agentId,
+    visitorToken,
     preferSse,
     refresh,
     dispatchPayload,
