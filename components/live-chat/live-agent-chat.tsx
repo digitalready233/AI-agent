@@ -22,17 +22,31 @@ import {
 import { LiveAgentSalesStrip } from "@/components/live-chat/live-agent-sales-strip";
 import { LiveAgentStageBar } from "@/components/live-chat/live-agent-stage-bar";
 import { LiveAgentMicroStepTrack } from "@/components/live-chat/live-agent-micro-step-track";
+import {
+  LiveAgentConversationSidebar,
+  SidebarToggleButton,
+} from "@/components/live-chat/live-agent-conversation-sidebar";
 import { resolveUiPipelineStage } from "@/lib/live-chat/pipeline-stages";
 import { readybotMicroStepUi } from "@/lib/live-chat/readybot-micro-step-ui";
+import {
+  createConversation,
+  getActiveSessionId,
+  listConversations,
+  migrateLegacyConversationIndex,
+  replaceConversationSessionId,
+  setActiveSessionId,
+  touchConversationFromUserMessage,
+  type VisitorConversationEntry,
+} from "@/lib/live-chat/visitor-conversation-store";
 import type { VisitorChatMessage } from "@/lib/platform/visitor-chat";
 import { LiveAgentBookingPanel } from "./live-agent-booking-panel";
 import { LiveAgentAudioControls } from "./live-agent-audio-controls";
 import { UserVoiceNote } from "./user-voice-note";
 import { useLiveAgentVoice } from "@/hooks/use-live-agent-voice";
 import {
-  getStoredVisitorToken,
-  rotateVisitorSession,
-  storeVisitorToken,
+  clearLiveSessionToken,
+  getStoredLiveSessionToken,
+  storeLiveSessionToken,
   visitorAuthHeaders,
 } from "@/lib/auth/visitor-session-client";
 import type { PlatformChatResponseBody } from "@/lib/platform/chat/build-platform-chat-response";
@@ -202,20 +216,6 @@ function historyRowsToUi(
 
 const DEFAULT_QUICK_PROMPTS = [...LIVE_AGENT_DEFAULT_QUICK_PROMPTS];
 
-function sessionStorageKey(agentId: string): string {
-  return `digisales_live_session_${agentId}`;
-}
-
-function getOrCreateSessionId(agentId: string): string {
-  const key = sessionStorageKey(agentId);
-  let id = localStorage.getItem(key);
-  if (!id) {
-    id = `live_${crypto.randomUUID()}`;
-    localStorage.setItem(key, id);
-  }
-  return id;
-}
-
 function initials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
   if (parts.length === 0) return "AI";
@@ -226,9 +226,14 @@ function initials(name: string): string {
 export function LiveAgentChat({
   agentId,
   embed = false,
+  startFresh = false,
+  initialSessionId,
 }: {
   agentId: string;
   embed?: boolean;
+  /** When true, always open a blank conversation (e.g. from landing CTA). */
+  startFresh?: boolean;
+  initialSessionId?: string;
 }) {
   const [meta, setMeta] = useState<LiveAgentMeta | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -257,7 +262,14 @@ export function LiveAgentChat({
   >();
   const [voiceInputMode, setVoiceInputMode] = useState(false);
   const [voiceOutputMode, setVoiceOutputMode] = useState(true);
+  const [conversations, setConversations] = useState<VisitorConversationEntry[]>([]);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sessionSwitching, setSessionSwitching] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const refreshConversationList = useCallback(() => {
+    setConversations(listConversations(agentId));
+  }, [agentId]);
 
   const uiPipelineStage = useMemo(
     () =>
@@ -405,13 +417,15 @@ export function LiveAgentChat({
         audioDurationSec?: number;
       }
     ) => {
-      if (data.visitorToken) {
-        storeVisitorToken(sessionStorageKey(agentId), data.visitorToken);
+      if (data.visitorToken && sessionId) {
+        storeLiveSessionToken(agentId, sessionId, data.visitorToken);
         setVisitorToken(data.visitorToken);
       }
 
       const transcript = data.transcript?.trim();
-      if (transcript) {
+      if (transcript && sessionId) {
+        touchConversationFromUserMessage(agentId, sessionId, transcript);
+        refreshConversationList();
         setMessages((prev) => {
           const withoutWelcomeOnly =
             prev.length === 1 && prev[0]?.id === "welcome" ? [] : prev;
@@ -432,7 +446,7 @@ export function LiveAgentChat({
       applyPlatformResponse(data);
       setIsLoading(false);
     },
-    [agentId, applyPlatformResponse]
+    [agentId, applyPlatformResponse, refreshConversationList, sessionId]
   );
 
   const handleVoiceError = useCallback((message: string) => {
@@ -444,18 +458,156 @@ export function LiveAgentChat({
   }, []);
 
   const rotateSessionForAuth = useCallback(() => {
-    const storageKey = sessionStorageKey(agentId);
-    const newSid = rotateVisitorSession(
-      storageKey,
-      () => `live_${crypto.randomUUID()}`
-    );
+    if (!sessionId) return null;
+    const oldSid = sessionId;
+    clearLiveSessionToken(agentId, oldSid);
+    const newSid = `live_${crypto.randomUUID()}`;
+    replaceConversationSessionId(agentId, oldSid, newSid);
+    setActiveSessionId(agentId, newSid);
     setSessionId(newSid);
     setVisitorToken(null);
     setConversationId(undefined);
     setHandoffActive(false);
     setStaffJoined(false);
+    refreshConversationList();
     return newSid;
-  }, [agentId]);
+  }, [agentId, refreshConversationList, sessionId]);
+
+  const resetPipelineState = useCallback(() => {
+    setConversationId(undefined);
+    setConversationStage(undefined);
+    setReadybotPipelineStep(undefined);
+    setDetectedIntent(undefined);
+    setLeadCategory(undefined);
+    setRecommendedNextAction(undefined);
+    setReadybotMicroStep(undefined);
+    setHandoffActive(false);
+    setStaffJoined(false);
+    setHandoffMessage(null);
+    setShowBooking(false);
+    setInput("");
+  }, []);
+
+  const loadConversationSession = useCallback(
+    async (sid: string) => {
+      setSessionSwitching(true);
+      setSessionId(sid);
+      setActiveSessionId(agentId, sid);
+      const storedToken = getStoredLiveSessionToken(agentId, sid);
+      setVisitorToken(storedToken);
+      resetPipelineState();
+
+      try {
+        let agentMeta = meta;
+        if (!agentMeta) {
+          const agentRes = await fetch(
+            `/api/platform/chat/agent?agentId=${encodeURIComponent(agentId)}`
+          );
+          if (!agentRes.ok) {
+            const err = await agentRes.json().catch(() => ({}));
+            throw new Error(
+              typeof err.error === "string" ? err.error : "This agent is not available."
+            );
+          }
+          const agentPayload = (await agentRes.json()) as LiveAgentMeta & {
+            companyProductName?: string;
+          };
+          agentMeta = {
+            id: agentPayload.id,
+            name: agentPayload.name,
+            nickname: agentPayload.nickname,
+            companyProductName: agentPayload.companyProductName,
+            welcomeMessage: agentPayload.welcomeMessage,
+          };
+          setMeta(agentMeta);
+        }
+
+        let activeSid = sid;
+        let activeToken = storedToken;
+        let historyRes = await fetch(
+          `/api/platform/chat/history?sessionId=${encodeURIComponent(activeSid)}&agentId=${encodeURIComponent(agentId)}`,
+          { headers: visitorAuthHeaders(activeToken) }
+        );
+
+        if (historyRes.status === 401) {
+          clearLiveSessionToken(agentId, activeSid);
+          const newSid = `live_${crypto.randomUUID()}`;
+          replaceConversationSessionId(agentId, activeSid, newSid);
+          activeSid = newSid;
+          activeToken = null;
+          setSessionId(newSid);
+          setActiveSessionId(agentId, newSid);
+          setVisitorToken(null);
+          refreshConversationList();
+          historyRes = await fetch(
+            `/api/platform/chat/history?sessionId=${encodeURIComponent(activeSid)}&agentId=${encodeURIComponent(agentId)}`,
+            { headers: visitorAuthHeaders(null) }
+          );
+        }
+
+        const historyPayload = historyRes.ok
+          ? await historyRes.json()
+          : { messages: [] as { role: string; content: string; at?: string; id?: string }[] };
+
+        const stored = (historyPayload.messages ?? []) as {
+          id?: string;
+          role: string;
+          content: string;
+          at?: string;
+          label?: string;
+        }[];
+
+        if (historyPayload.conversationId) {
+          setConversationId(historyPayload.conversationId);
+        }
+        if (historyPayload.handoffActive) {
+          setHandoffActive(true);
+          setStaffJoined(Boolean(historyPayload.staffJoined));
+        }
+
+        if (stored.length > 0) {
+          setMessages(historyRowsToUi(stored));
+        } else {
+          setMessages([
+            {
+              id: "welcome",
+              role: "assistant",
+              content:
+                agentMeta.welcomeMessage?.trim() ||
+                historyPayload.welcomeMessage?.trim() ||
+                LIVE_AGENT_QUALIFICATION_WELCOME,
+              at: new Date().toISOString(),
+            },
+          ]);
+        }
+
+        setReady(true);
+      } catch (err) {
+        setLoadError(
+          err instanceof Error ? err.message : "Unable to load chat. Please try again."
+        );
+      } finally {
+        setSessionSwitching(false);
+      }
+    },
+    [agentId, meta, refreshConversationList, resetPipelineState]
+  );
+
+  const startNewConversation = useCallback(() => {
+    const sid = createConversation(agentId);
+    refreshConversationList();
+    setSidebarOpen(false);
+    void loadConversationSession(sid);
+  }, [agentId, loadConversationSession, refreshConversationList]);
+
+  const switchConversation = useCallback(
+    (sid: string) => {
+      if (sid === sessionId || sessionSwitching) return;
+      setSidebarOpen(false);
+      void loadConversationSession(sid);
+    },
+    [loadConversationSession, sessionId, sessionSwitching]
+  );
 
   const {
     status: voiceStatus,
@@ -496,106 +648,24 @@ export function LiveAgentChat({
   }, [messages, isLoading, handoffActive, voiceStatus]);
 
   useEffect(() => {
-    const storageKey = sessionStorageKey(agentId);
-    const sid = getOrCreateSessionId(agentId);
-    const storedToken = getStoredVisitorToken(storageKey);
-    setSessionId(sid);
-    setVisitorToken(storedToken);
+    migrateLegacyConversationIndex(agentId);
+    refreshConversationList();
 
-    let cancelled = false;
-
-    async function bootstrap() {
-      try {
-        const [agentRes, historyRes] = await Promise.all([
-          fetch(`/api/platform/chat/agent?agentId=${encodeURIComponent(agentId)}`),
-          fetch(
-            `/api/platform/chat/history?sessionId=${encodeURIComponent(sid)}&agentId=${encodeURIComponent(agentId)}`,
-            { headers: visitorAuthHeaders(storedToken) }
-          ),
-        ]);
-
-        if (!agentRes.ok) {
-          const err = await agentRes.json().catch(() => ({}));
-          throw new Error(
-            typeof err.error === "string" ? err.error : "This agent is not available."
-          );
-        }
-
-        const agentPayload = (await agentRes.json()) as LiveAgentMeta & {
-          companyProductName?: string;
-        };
-
-        if (cancelled) return;
-
-        setMeta({
-          id: agentPayload.id,
-          name: agentPayload.name,
-          nickname: agentPayload.nickname,
-          companyProductName: agentPayload.companyProductName,
-          welcomeMessage: agentPayload.welcomeMessage,
-        });
-
-        if (historyRes.status === 401) {
-          const newSid = rotateVisitorSession(
-            storageKey,
-            () => `live_${crypto.randomUUID()}`
-          );
-          setSessionId(newSid);
-          setVisitorToken(null);
-          setConversationId(undefined);
-        }
-
-        const historyPayload = historyRes.ok
-          ? await historyRes.json()
-          : { messages: [] as { role: string; content: string; at?: string; id?: string }[] };
-
-        const stored = (historyPayload.messages ?? []) as {
-          id?: string;
-          role: string;
-          content: string;
-          at?: string;
-          label?: string;
-        }[];
-
-        if (historyPayload.conversationId) {
-          setConversationId(historyPayload.conversationId);
-        }
-        if (historyPayload.handoffActive) {
-          setHandoffActive(true);
-          setStaffJoined(Boolean(historyPayload.staffJoined));
-        }
-
-        if (stored.length > 0) {
-          setMessages(historyRowsToUi(stored));
-        } else {
-          setMessages([
-            {
-              id: "welcome",
-              role: "assistant",
-              content:
-                agentPayload.welcomeMessage?.trim() ||
-                historyPayload.welcomeMessage?.trim() ||
-                LIVE_AGENT_QUALIFICATION_WELCOME,
-              at: new Date().toISOString(),
-            },
-          ]);
-        }
-
-        setReady(true);
-      } catch (err) {
-        if (!cancelled) {
-          setLoadError(
-            err instanceof Error ? err.message : "Unable to load chat. Please try again."
-          );
-        }
-      }
+    let sid: string;
+    if (initialSessionId?.trim()) {
+      sid = initialSessionId.trim();
+      setActiveSessionId(agentId, sid);
+    } else if (startFresh) {
+      sid = createConversation(agentId);
+    } else {
+      sid = getActiveSessionId(agentId) ?? createConversation(agentId);
     }
 
-    void bootstrap();
-    return () => {
-      cancelled = true;
-    };
-  }, [agentId]);
+    refreshConversationList();
+    void loadConversationSession(sid);
+    // Bootstrap only when agent or entry intent changes — not when meta loads.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional
+  }, [agentId, initialSessionId, startFresh]);
 
   const sendMessage = useCallback(
     async (text: string) => {
@@ -617,6 +687,8 @@ export function LiveAgentChat({
       });
       setInput("");
       setIsLoading(true);
+      touchConversationFromUserMessage(agentId, sessionId, trimmed);
+      refreshConversationList();
 
       try {
         const endpoint = voiceOutputMode
@@ -663,11 +735,12 @@ export function LiveAgentChat({
         }
 
         if (data.visitorToken) {
-          storeVisitorToken(sessionStorageKey(agentId), data.visitorToken);
+          storeLiveSessionToken(agentId, activeSessionId, data.visitorToken);
           setVisitorToken(data.visitorToken);
         }
 
         applyPlatformResponse(data);
+        refreshConversationList();
         if (voiceOutputMode && data.reply) {
           await playResponseAudio(
             data.reply,
@@ -696,6 +769,7 @@ export function LiveAgentChat({
       applyPlatformResponse,
       isLoading,
       playResponseAudio,
+      refreshConversationList,
       rotateSessionForAuth,
       sessionId,
       visitorToken,
@@ -725,8 +799,23 @@ export function LiveAgentChat({
     );
   }
 
+  const workspaceClass = embed
+    ? `${styles.workspace} ${styles.workspaceEmbed}`
+    : styles.workspace;
+
   return (
-    <div className={rootClass}>
+    <div className={workspaceClass}>
+      <LiveAgentConversationSidebar
+        conversations={conversations}
+        activeSessionId={sessionId}
+        open={sidebarOpen}
+        embed={embed}
+        disabled={sessionSwitching || isLoading}
+        onNewChat={startNewConversation}
+        onSelect={switchConversation}
+        onClose={() => setSidebarOpen(false)}
+      />
+      <div className={rootClass}>
       <header className={styles.header}>
         <ChatHeader
           displayName={displayName}
@@ -735,6 +824,9 @@ export function LiveAgentChat({
           handoffActive={handoffActive}
           staffJoined={staffJoined}
           handoffMessage={handoffMessage}
+          headerStart={
+            <SidebarToggleButton onClick={() => setSidebarOpen((o) => !o)} />
+          }
         />
       </header>
 
@@ -802,12 +894,18 @@ export function LiveAgentChat({
         />
 
         <QuickPrompts
-          disabled={isLoading || voiceStatus === "processing"}
+          disabled={isLoading || voiceStatus === "processing" || sessionSwitching}
           hidden={handoffActive}
           prompts={quickPrompts}
           onSelect={(t) => void sendMessage(t)}
         />
       </div>
+
+      {sessionSwitching ? (
+        <div className={styles.sessionSwitchOverlay} role="status" aria-live="polite">
+          Loading conversation…
+        </div>
+      ) : null}
 
       {showBooking && !handoffActive && sessionId ? (
         <LiveAgentBookingPanel
@@ -949,6 +1047,7 @@ export function LiveAgentChat({
           </div>
         )}
       </form>
+      </div>
     </div>
   );
 }
@@ -988,6 +1087,7 @@ function ChatHeader({
   handoffActive,
   staffJoined,
   handoffMessage,
+  headerStart,
 }: {
   displayName: string;
   company?: string | null;
@@ -995,10 +1095,12 @@ function ChatHeader({
   handoffActive: boolean;
   staffJoined?: boolean;
   handoffMessage: string | null;
+  headerStart?: ReactNode;
 }) {
   return (
     <>
       <div className={styles.headerRow}>
+        {headerStart}
         <div className={styles.avatar} aria-hidden>
           {initialsText}
         </div>

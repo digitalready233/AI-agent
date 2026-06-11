@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { LiveAgentChat } from "@/components/live-chat/live-agent-chat";
 import styles from "./live-agent-page.module.css";
@@ -23,6 +23,16 @@ function LiveAgentContent({
     embedProp ??
     (searchParams.get("embed") === "1" || searchParams.get("embed") === "true");
 
+  const startFresh = searchParams.get("new") === "1";
+  const resumeSessionId = searchParams.get("session")?.trim() || undefined;
+
+  useEffect(() => {
+    if (!startFresh || typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    url.searchParams.delete("new");
+    window.history.replaceState({}, "", `${url.pathname}${url.search}`);
+  }, [startFresh]);
+
   if (!agentId) {
     return (
       <main className={embed ? styles.shellEmbed : styles.shell}>
@@ -41,7 +51,12 @@ function LiveAgentContent({
   if (embed) {
     return (
       <main className={styles.shellEmbed}>
-        <LiveAgentChat agentId={agentId} embed />
+        <LiveAgentChat
+          agentId={agentId}
+          embed
+          startFresh={startFresh}
+          initialSessionId={resumeSessionId}
+        />
       </main>
     );
   }
@@ -58,7 +73,11 @@ function LiveAgentContent({
         </p>
       </div>
       <div className={styles.chatFrame}>
-        <LiveAgentChat agentId={agentId} />
+        <LiveAgentChat
+          agentId={agentId}
+          startFresh={startFresh}
+          initialSessionId={resumeSessionId}
+        />
       </div>
       <footer className={styles.footer}>
         <p>

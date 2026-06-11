@@ -216,7 +216,7 @@ export function Landing() {
     "Digital marketing, branding & business growth";
   const demoAgentId = process.env.NEXT_PUBLIC_PLATFORM_AGENT_ID?.trim() ?? "";
   const liveAgentHref = demoAgentId
-    ? `/live-agent/${encodeURIComponent(demoAgentId)}`
+    ? `/live-agent/${encodeURIComponent(demoAgentId)}?new=1`
     : "/agent";
   const workspaceHref = loginUrl("/dashboard");
   const knowledgeHref = loginUrl("/dashboard/knowledge");
