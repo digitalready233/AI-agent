@@ -3,6 +3,8 @@ export type VisitorConversationEntry = {
   title: string;
   preview?: string;
   updatedAt: string;
+  /** Linked earlier session — AI may use for context, not shown in this thread UI. */
+  priorSessionId?: string;
 };
 
 const INDEX_PREFIX = "digisales_conv_index_";
@@ -92,15 +94,27 @@ export function upsertConversation(
   writeIndex(agentId, index.slice(0, 40));
 }
 
-export function createConversation(agentId: string): string {
+export function createConversation(
+  agentId: string,
+  options?: { priorSessionId?: string }
+): string {
   const sessionId = `live_${crypto.randomUUID()}`;
   upsertConversation(agentId, {
     sessionId,
     title: "New conversation",
     updatedAt: new Date().toISOString(),
+    priorSessionId: options?.priorSessionId,
   });
   setActiveSessionId(agentId, sessionId);
   return sessionId;
+}
+
+export function getPriorSessionId(
+  agentId: string,
+  sessionId: string
+): string | null {
+  const entry = readIndex(agentId).find((e) => e.sessionId === sessionId);
+  return entry?.priorSessionId?.trim() || null;
 }
 
 export function replaceConversationSessionId(

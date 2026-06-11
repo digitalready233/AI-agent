@@ -31,6 +31,7 @@ import { workflowInputSchema, type WorkflowInput } from "./schemas";
 import { resolveLeadCategory } from "./lead-category";
 import { sumLeadScores } from "./scoring";
 import { loadWorkflowContext } from "./workflow-context";
+import { loadPriorSessionHistory } from "./prior-session-history";
 import { buildInternalWorkflowBookingContext } from "@/lib/booking/workflow-context";
 import { WorkflowError, type RunAgentWorkflowResult } from "./types";
 
@@ -57,6 +58,7 @@ export async function runAgentWorkflow(
     externalMessageId,
     inputMode,
     turnTimestamp,
+    priorSessionId,
   } = parsed.data;
 
   const turnAt = turnTimestamp ?? new Date().toISOString();
@@ -94,12 +96,24 @@ export async function runAgentWorkflow(
   const { settings } = ctx;
 
   const priorMessages = await listMessages(conversationId);
-  const history = priorMessages
+  const currentHistory = priorMessages
     .filter((m) => m.sender_type === "user" || m.sender_type === "assistant")
     .map((m) => ({
       role: m.sender_type === "user" ? ("user" as const) : ("assistant" as const),
       content: m.content,
     }));
+
+  const priorThread =
+    priorSessionId?.trim() && priorSessionId !== conversation.session_id
+      ? await loadPriorSessionHistory({
+          organizationId,
+          agentId,
+          priorSessionId: priorSessionId.trim(),
+        })
+      : [];
+
+  const history =
+    priorThread.length > 0 ? [...priorThread, ...currentHistory] : currentHistory;
 
   const knowledgeContext = await getKnowledgeContextForAgent(agentId, organizationId, {
     strict: channel === "website" || channel === "embed",

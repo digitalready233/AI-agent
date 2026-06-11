@@ -63,6 +63,7 @@ const bodySchema = z.object({
       businessName: z.string().optional(),
     })
     .optional(),
+  priorSessionId: z.string().min(1).max(128).optional(),
 });
 
 function publicChatErrorResponse(err: PublicChatGuardError): Response {
@@ -177,6 +178,7 @@ export async function POST(req: Request) {
         customerMessage: parsed.data.message,
         channel: parsed.data.channel ?? "website",
         customerMetadata: parsed.data.customerMetadata,
+        priorSessionId: parsed.data.priorSessionId,
       });
     });
 

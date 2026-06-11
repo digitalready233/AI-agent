@@ -6,6 +6,7 @@ import {
   type RefObject,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -19,18 +20,14 @@ import {
   LIVE_AGENT_DEFAULT_QUICK_PROMPTS,
   LIVE_AGENT_QUALIFICATION_WELCOME,
 } from "@/lib/copy/public-messaging";
-import { LiveAgentSalesStrip } from "@/components/live-chat/live-agent-sales-strip";
-import { LiveAgentStageBar } from "@/components/live-chat/live-agent-stage-bar";
-import { LiveAgentMicroStepTrack } from "@/components/live-chat/live-agent-micro-step-track";
 import {
   LiveAgentConversationSidebar,
   SidebarToggleButton,
 } from "@/components/live-chat/live-agent-conversation-sidebar";
-import { resolveUiPipelineStage } from "@/lib/live-chat/pipeline-stages";
-import { readybotMicroStepUi } from "@/lib/live-chat/readybot-micro-step-ui";
 import {
   createConversation,
   getActiveSessionId,
+  getPriorSessionId,
   listConversations,
   migrateLegacyConversationIndex,
   replaceConversationSessionId,
@@ -40,9 +37,7 @@ import {
 } from "@/lib/live-chat/visitor-conversation-store";
 import type { VisitorChatMessage } from "@/lib/platform/visitor-chat";
 import { LiveAgentBookingPanel } from "./live-agent-booking-panel";
-import { LiveAgentAudioControls } from "./live-agent-audio-controls";
-import { UserVoiceNote } from "./user-voice-note";
-import { useLiveAgentVoice } from "@/hooks/use-live-agent-voice";
+import { useComposerDictation } from "@/hooks/use-composer-dictation";
 import {
   clearLiveSessionToken,
   getStoredLiveSessionToken,
@@ -50,10 +45,6 @@ import {
   visitorAuthHeaders,
 } from "@/lib/auth/visitor-session-client";
 import type { PlatformChatResponseBody } from "@/lib/platform/chat/build-platform-chat-response";
-import {
-  readybotMicroStepLabel,
-  type ReadybotMicroStep,
-} from "@/lib/platform/workflow/readybot-micro-steps";
 import styles from "./live-agent-chat.module.css";
 
 export type LiveAgentMeta = {
@@ -65,14 +56,7 @@ export type LiveAgentMeta = {
 };
 
 type ChatMessage = UiChatMessage & {
-  inputMode?: "text" | "audio";
-  audioBase64?: string | null;
-  audioMimeType?: string | null;
-  localAudioUrl?: string;
-  audioDurationSec?: number;
   at?: string;
-  microStepLabel?: string | null;
-  readybotMicroStep?: ReadybotMicroStep;
 };
 
 type PlatformChatResponse = PlatformChatResponseBody & {
@@ -257,50 +241,40 @@ export function LiveAgentChat({
   const [recommendedNextAction, setRecommendedNextAction] = useState<
     string | undefined
   >();
-  const [readybotMicroStep, setReadybotMicroStep] = useState<
-    PlatformChatResponseBody["readybotMicroStep"]
-  >();
-  const [voiceInputMode, setVoiceInputMode] = useState(false);
-  const [voiceOutputMode, setVoiceOutputMode] = useState(true);
+  const [priorSessionId, setPriorSessionId] = useState<string | null>(null);
   const [conversations, setConversations] = useState<VisitorConversationEntry[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sessionSwitching, setSessionSwitching] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const refreshConversationList = useCallback(() => {
     setConversations(listConversations(agentId));
   }, [agentId]);
-
-  const uiPipelineStage = useMemo(
-    () =>
-      resolveUiPipelineStage({
-        readybotPipelineStep,
-        conversationStage,
-        handoffActive,
-      }),
-    [conversationStage, handoffActive, readybotPipelineStep]
-  );
 
   const quickPrompts = useMemo(
     () => quickPromptsForAgent(meta, conversationStage, readybotPipelineStep),
     [meta, conversationStage, readybotPipelineStep]
   );
 
-  const seenMicroSteps = useMemo(() => {
-    const seen = new Set<NonNullable<ReadybotMicroStep>>();
-    for (const m of messages) {
-      if (m.role === "assistant" && m.readybotMicroStep) {
-        seen.add(m.readybotMicroStep);
-      }
-    }
-    return seen;
-  }, [messages]);
-
-  const showMicroStepTrack =
-    isReadybotAgent(meta) &&
-    (uiPipelineStage === "discovery" || uiPipelineStage === "stack");
-
   const handoffPollEnabled = handoffActive && Boolean(sessionId);
+
+  const welcomeText = useCallback(
+    (agentMeta?: LiveAgentMeta | null) =>
+      agentMeta?.welcomeMessage?.trim() || LIVE_AGENT_QUALIFICATION_WELCOME,
+    []
+  );
+
+  const makeWelcomeMessage = useCallback(
+    (agentMeta?: LiveAgentMeta | null): ChatMessage => ({
+      id: `welcome_${Date.now()}`,
+      role: "assistant",
+      content: welcomeText(agentMeta),
+      at: new Date().toISOString(),
+    }),
+    [welcomeText]
+  );
 
   const applySyncMessages = useCallback((merged: VisitorChatMessage[]) => {
     const ui = visitorToUiMessages(merged);
@@ -337,21 +311,12 @@ export function LiveAgentChat({
 
   const applyPlatformResponse = useCallback(
     (data: PlatformChatResponse) => {
-      const microLabel =
-        data.readybotMicroStep != null
-          ? readybotMicroStepLabel(data.readybotMicroStep)
-          : null;
-
       setMessages((prev) => [
         ...prev,
         {
           id: `a_${Date.now()}`,
           role: "assistant",
           content: data.reply?.trim() || "Thanks for your message.",
-          audioBase64: data.audioBase64,
-          audioMimeType: data.audioMimeType,
-          microStepLabel: microLabel,
-          readybotMicroStep: data.readybotMicroStep ?? null,
           at: new Date().toISOString(),
         },
       ]);
@@ -359,9 +324,6 @@ export function LiveAgentChat({
       if (data.conversationId) setConversationId(data.conversationId);
       if (data.conversationStage) setConversationStage(data.conversationStage);
       if (data.readybotPipelineStep) setReadybotPipelineStep(data.readybotPipelineStep);
-      if (data.readybotMicroStep !== undefined) {
-        setReadybotMicroStep(data.readybotMicroStep);
-      }
       if (data.detectedIntent) setDetectedIntent(data.detectedIntent);
       if (data.leadCategory) setLeadCategory(data.leadCategory);
 
@@ -409,54 +371,6 @@ export function LiveAgentChat({
     [applySyncMessages, refreshHandoff]
   );
 
-  const handleVoiceTurn = useCallback(
-    (
-      data: PlatformChatResponse & {
-        transcript?: string;
-        localAudioUrl?: string;
-        audioDurationSec?: number;
-      }
-    ) => {
-      if (data.visitorToken && sessionId) {
-        storeLiveSessionToken(agentId, sessionId, data.visitorToken);
-        setVisitorToken(data.visitorToken);
-      }
-
-      const transcript = data.transcript?.trim();
-      if (transcript && sessionId) {
-        touchConversationFromUserMessage(agentId, sessionId, transcript);
-        refreshConversationList();
-        setMessages((prev) => {
-          const withoutWelcomeOnly =
-            prev.length === 1 && prev[0]?.id === "welcome" ? [] : prev;
-          return [
-            ...withoutWelcomeOnly,
-            {
-              id: `u_voice_${Date.now()}`,
-              role: "user",
-              content: transcript,
-              inputMode: "audio",
-              localAudioUrl: data.localAudioUrl,
-              audioDurationSec: data.audioDurationSec,
-              at: new Date().toISOString(),
-            },
-          ];
-        });
-      }
-      applyPlatformResponse(data);
-      setIsLoading(false);
-    },
-    [agentId, applyPlatformResponse, refreshConversationList, sessionId]
-  );
-
-  const handleVoiceError = useCallback((message: string) => {
-    setMessages((prev) => [
-      ...prev,
-      { id: `err_voice_${Date.now()}`, role: "assistant", content: message },
-    ]);
-    setIsLoading(false);
-  }, []);
-
   const rotateSessionForAuth = useCallback(() => {
     if (!sessionId) return null;
     const oldSid = sessionId;
@@ -480,7 +394,6 @@ export function LiveAgentChat({
     setDetectedIntent(undefined);
     setLeadCategory(undefined);
     setRecommendedNextAction(undefined);
-    setReadybotMicroStep(undefined);
     setHandoffActive(false);
     setStaffJoined(false);
     setHandoffMessage(null);
@@ -493,6 +406,8 @@ export function LiveAgentChat({
       setSessionSwitching(true);
       setSessionId(sid);
       setActiveSessionId(agentId, sid);
+      setPriorSessionId(getPriorSessionId(agentId, sid));
+      setMessages([makeWelcomeMessage(meta)]);
       const storedToken = getStoredLiveSessionToken(agentId, sid);
       setVisitorToken(storedToken);
       resetPipelineState();
@@ -590,15 +505,31 @@ export function LiveAgentChat({
         setSessionSwitching(false);
       }
     },
-    [agentId, meta, refreshConversationList, resetPipelineState]
+    [agentId, makeWelcomeMessage, meta, refreshConversationList, resetPipelineState]
   );
 
   const startNewConversation = useCallback(() => {
-    const sid = createConversation(agentId);
+    const priorSid = sessionId || undefined;
+    const sid = createConversation(agentId, { priorSessionId: priorSid });
+    setPriorSessionId(priorSid ?? null);
+    setSessionId(sid);
+    setActiveSessionId(agentId, sid);
+    setVisitorToken(null);
+    setConversationId(undefined);
+    resetPipelineState();
+    setMessages([makeWelcomeMessage(meta)]);
+    setReady(true);
+    setSessionSwitching(false);
     refreshConversationList();
     setSidebarOpen(false);
-    void loadConversationSession(sid);
-  }, [agentId, loadConversationSession, refreshConversationList]);
+  }, [
+    agentId,
+    makeWelcomeMessage,
+    meta,
+    refreshConversationList,
+    resetPipelineState,
+    sessionId,
+  ]);
 
   const switchConversation = useCallback(
     (sid: string) => {
@@ -609,29 +540,11 @@ export function LiveAgentChat({
     [loadConversationSession, sessionId, sessionSwitching]
   );
 
-  const {
-    status: voiceStatus,
-    recording,
-    toggleRecording,
-    playResponseAudio,
-  } = useLiveAgentVoice({
-    sessionId,
+  const dictation = useComposerDictation({
     agentId,
-    visitorToken,
-    enabled: voiceInputMode && !handoffActive && Boolean(sessionId),
-    autoPlay: voiceOutputMode,
-    onSessionRotate: rotateSessionForAuth,
-    onTurnComplete: handleVoiceTurn,
-    onError: handleVoiceError,
+    sessionId,
+    disabled: handoffActive || isLoading || sessionSwitching,
   });
-
-  const sessionStatus = useMemo(() => {
-    if (voiceStatus === "listening") return "Listening…";
-    if (voiceStatus === "processing") return "Transcribing…";
-    if (isLoading) return "Typing…";
-    if (voiceStatus === "ai_speaking") return "Speaking…";
-    return null;
-  }, [isLoading, voiceStatus]);
 
   const displayName = useMemo(() => {
     if (!meta) return "AI Assistant";
@@ -640,12 +553,16 @@ export function LiveAgentChat({
 
   const rootClass = embed ? `${styles.root} ${styles.rootEmbed}` : styles.root;
 
+  useLayoutEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages, isLoading, sessionSwitching, dictation.isTranscribing]);
+
   useEffect(() => {
-    scrollRef.current?.scrollTo({
-      top: scrollRef.current.scrollHeight,
-      behavior: "smooth",
-    });
-  }, [messages, isLoading, handoffActive, voiceStatus]);
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
+  }, [input]);
 
   useEffect(() => {
     migrateLegacyConversationIndex(agentId);
@@ -670,20 +587,20 @@ export function LiveAgentChat({
   const sendMessage = useCallback(
     async (text: string) => {
       const trimmed = text.trim();
-      if (!trimmed || isLoading || !sessionId || voiceInputMode) return;
+      if (!trimmed || isLoading || !sessionId || dictation.isRecording) return;
 
       const userMsg: ChatMessage = {
         id: `u_${Date.now()}`,
         role: "user",
         content: trimmed,
-        inputMode: "text",
         at: new Date().toISOString(),
       };
 
       setMessages((prev) => {
-        const withoutWelcomeOnly =
-          prev.length === 1 && prev[0]?.id === "welcome" ? [] : prev;
-        return [...withoutWelcomeOnly, userMsg];
+        const welcomeOnly =
+          prev.length === 1 &&
+          (prev[0]?.id === "welcome" || prev[0]?.id.startsWith("welcome_"));
+        return [...(welcomeOnly ? [] : prev), userMsg];
       });
       setInput("");
       setIsLoading(true);
@@ -691,12 +608,8 @@ export function LiveAgentChat({
       refreshConversationList();
 
       try {
-        const endpoint = voiceOutputMode
-          ? "/api/platform/chat/voice"
-          : "/api/platform/chat";
-
         const postChat = (sid: string, token: string | null) =>
-          fetch(endpoint, {
+          fetch("/api/platform/chat", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -707,7 +620,7 @@ export function LiveAgentChat({
               agentId,
               message: trimmed,
               channel: "live_agent",
-              includeTts: voiceOutputMode,
+              ...(priorSessionId ? { priorSessionId } : {}),
             }),
           });
 
@@ -741,13 +654,6 @@ export function LiveAgentChat({
 
         applyPlatformResponse(data);
         refreshConversationList();
-        if (voiceOutputMode && data.reply) {
-          await playResponseAudio(
-            data.reply,
-            data.audioBase64,
-            data.audioMimeType
-          );
-        }
       } catch (err) {
         setMessages((prev) => [
           ...prev,
@@ -767,14 +673,13 @@ export function LiveAgentChat({
     [
       agentId,
       applyPlatformResponse,
+      dictation.isRecording,
       isLoading,
-      playResponseAudio,
+      priorSessionId,
       refreshConversationList,
       rotateSessionForAuth,
       sessionId,
       visitorToken,
-      voiceInputMode,
-      voiceOutputMode,
     ]
   );
 
@@ -830,71 +735,17 @@ export function LiveAgentChat({
         />
       </header>
 
-      <LiveAgentStageBar activeStage={uiPipelineStage} />
-
       <div className={styles.conversationPanel}>
-        <LiveAgentSalesStrip
-          stage={uiPipelineStage}
-          intent={detectedIntent}
-          leadCategory={leadCategory}
-          nextAction={
-            readybotMicroStep
-              ? readybotMicroStepLabel(readybotMicroStep) ?? recommendedNextAction
-              : recommendedNextAction
-          }
-          handoffActive={handoffActive}
-          staffJoined={staffJoined}
-          bookingReady={showBooking}
-        />
-
-        {showMicroStepTrack ? (
-          <LiveAgentMicroStepTrack
-            pipelineStage={uiPipelineStage}
-            currentMicroStep={readybotMicroStep}
-            seenMicroSteps={seenMicroSteps}
-          />
-        ) : null}
-
-        {sessionStatus ? (
-          <div className={styles.sessionStatus} role="status" aria-live="polite">
-            <StatusIndicator
-              label={sessionStatus}
-              variant={
-                voiceStatus === "processing"
-                  ? "transcribing"
-                  : voiceStatus === "ai_speaking"
-                    ? "speaking"
-                    : isLoading
-                      ? "typing"
-                      : voiceStatus === "listening"
-                        ? "listening"
-                        : "default"
-              }
-            />
-            <span>{sessionStatus}</span>
-          </div>
-        ) : null}
-
         <ChatMessages
           scrollRef={scrollRef}
+          messagesEndRef={messagesEndRef}
           messages={messages}
           displayName={displayName}
-          loadingLabel={
-            voiceStatus === "processing"
-              ? "Transcribing…"
-              : voiceStatus === "listening"
-                ? "Listening…"
-                : voiceStatus === "ai_speaking"
-                  ? "Speaking…"
-                  : "Typing…"
-          }
-          showTyping={isLoading || voiceStatus === "processing"}
-          showSpeaking={voiceStatus === "ai_speaking"}
-          voiceOutputMode={voiceOutputMode}
+          showTyping={isLoading || dictation.isTranscribing}
         />
 
         <QuickPrompts
-          disabled={isLoading || voiceStatus === "processing" || sessionSwitching}
+          disabled={isLoading || dictation.isTranscribing || sessionSwitching}
           hidden={handoffActive}
           prompts={quickPrompts}
           onSelect={(t) => void sendMessage(t)}
@@ -928,124 +779,96 @@ export function LiveAgentChat({
       ) : null}
 
       <form className={styles.composer} onSubmit={onSubmit}>
-        <div className={styles.composerToolbar}>
-          <div className={styles.toolbarGroup}>
-            <span className={styles.toolbarLabel}>Input</span>
-            <div className={styles.segmented} role="group" aria-label="Input mode">
-              <button
-                type="button"
-                className={
-                  !voiceInputMode
-                    ? `${styles.segmentBtn} ${styles.segmentBtnActive}`
-                    : styles.segmentBtn
-                }
-                onClick={() => setVoiceInputMode(false)}
-                disabled={handoffActive}
-                aria-pressed={!voiceInputMode}
-              >
-                Text
-              </button>
-              <button
-                type="button"
-                className={
-                  voiceInputMode
-                    ? `${styles.segmentBtn} ${styles.segmentBtnActive}`
-                    : styles.segmentBtn
-                }
-                onClick={() => setVoiceInputMode(true)}
-                disabled={handoffActive}
-                aria-pressed={voiceInputMode}
-              >
-                Voice
-              </button>
-            </div>
+        {dictation.isRecording ? (
+          <div className={styles.dictationBar} role="status" aria-live="polite">
+            <span className={styles.dictationPulse} aria-hidden />
+            <span className={styles.dictationLabel}>Listening… tap Done when finished</span>
+            <button
+              type="button"
+              className={styles.dictationDoneBtn}
+              onClick={() => {
+                void dictation.finishRecording().then((text) => {
+                  if (text) {
+                    setInput((prev) => (prev.trim() ? `${prev.trim()} ${text}` : text));
+                    textareaRef.current?.focus();
+                  }
+                });
+              }}
+            >
+              Done
+            </button>
+            <button
+              type="button"
+              className={styles.dictationCancelBtn}
+              onClick={() => dictation.cancelRecording()}
+            >
+              Cancel
+            </button>
           </div>
-          <div className={styles.toolbarGroup}>
-            <span className={styles.toolbarLabel}>Responses</span>
-            <div className={styles.segmented} role="group" aria-label="AI response mode">
-              <button
-                type="button"
-                className={
-                  !voiceOutputMode
-                    ? `${styles.segmentBtn} ${styles.segmentBtnActive}`
-                    : styles.segmentBtn
-                }
-                onClick={() => setVoiceOutputMode(false)}
-                aria-pressed={!voiceOutputMode}
-              >
-                Text only
-              </button>
-              <button
-                type="button"
-                className={
-                  voiceOutputMode
-                    ? `${styles.segmentBtn} ${styles.segmentBtnActive}`
-                    : styles.segmentBtn
-                }
-                onClick={() => setVoiceOutputMode(true)}
-                aria-pressed={voiceOutputMode}
-              >
-                Audio + Text
-              </button>
-            </div>
-          </div>
-        </div>
-        {voiceInputMode ? (
-          <div className={styles.voiceRow}>
-            <div className={styles.voiceMicWrap}>
-              {recording ? <span className={styles.micPulse} aria-hidden /> : null}
-              <button
-                type="button"
-                className={
-                  recording ? `${styles.micCircle} ${styles.micCircleActive}` : styles.micCircle
-                }
-                disabled={isLoading || handoffActive || voiceStatus === "processing"}
-                onClick={() => void toggleRecording()}
-                aria-label={
-                  recording
-                    ? "Stop recording and send"
-                    : voiceStatus === "ai_speaking"
-                      ? "AI is speaking"
-                      : "Tap to record voice message"
-                }
-              >
-                <MicIcon recording={recording} speaking={voiceStatus === "ai_speaking"} />
-              </button>
-            </div>
-            <p className={styles.voiceHint}>
-              {recording
-                ? "Recording… tap again to send"
-                : voiceStatus === "processing"
-                  ? "Transcribing your voice…"
-                  : voiceStatus === "ai_speaking"
-                    ? "Playing AI reply…"
-                    : "Tap the mic — your speech is transcribed and the AI replies"}
-            </p>
-          </div>
-        ) : (
-          <div className={styles.composerInputRow}>
-            <input
-              className={styles.input}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder={
-                handoffActive
-                  ? "Message your human closer…"
-                  : "Tell the AI agent about your goals…"
+        ) : null}
+        <div className={styles.composerBox}>
+          <textarea
+            ref={textareaRef}
+            className={styles.textarea}
+            value={input}
+            rows={1}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                void sendMessage(input);
               }
-              disabled={isLoading}
-              autoComplete="off"
-              aria-label="Your message"
-            />
+            }}
+            placeholder={
+              dictation.isTranscribing
+                ? "Transcribing…"
+                : handoffActive
+                  ? "Message your team…"
+                  : "Message your AI sales agent…"
+            }
+            disabled={isLoading || dictation.isTranscribing || handoffActive}
+            autoComplete="off"
+            aria-label="Your message"
+          />
+          <div className={styles.composerActions}>
+            <button
+              type="button"
+              className={styles.micBtn}
+              disabled={
+                isLoading || dictation.isTranscribing || handoffActive || sessionSwitching
+              }
+              onClick={() => {
+                void dictation.startRecording().catch((err) => {
+                  setMessages((prev) => [
+                    ...prev,
+                    {
+                      id: `err_mic_${Date.now()}`,
+                      role: "assistant",
+                      content:
+                        err instanceof Error
+                          ? err.message
+                          : "Microphone access was denied.",
+                    },
+                  ]);
+                });
+              }}
+              aria-label="Dictate message"
+            >
+              <MicIcon recording={false} speaking={false} />
+            </button>
             <button
               type="submit"
               className={styles.sendBtn}
-              disabled={isLoading || !input.trim()}
+              disabled={isLoading || dictation.isTranscribing || !input.trim()}
+              aria-label="Send message"
             >
-              Send
+              ↑
             </button>
           </div>
-        )}
+        </div>
+        <p className={styles.composerHint}>
+          Enter to send · Shift+Enter for a new line · Mic fills the box before you send
+        </p>
       </form>
       </div>
     </div>
@@ -1129,37 +952,24 @@ function ChatHeader({
 
 function ChatMessages({
   scrollRef,
+  messagesEndRef,
   messages,
   displayName,
-  loadingLabel,
   showTyping,
-  showSpeaking,
-  voiceOutputMode,
 }: {
   scrollRef: RefObject<HTMLDivElement | null>;
+  messagesEndRef: RefObject<HTMLDivElement | null>;
   messages: ChatMessage[];
   displayName: string;
-  loadingLabel: string;
   showTyping: boolean;
-  showSpeaking?: boolean;
-  voiceOutputMode: boolean;
 }) {
   return (
     <div ref={scrollRef} className={styles.messages} role="log" aria-live="polite">
       {messages.map((m) => (
-        <ChatBubble
-          key={m.id}
-          message={m}
-          assistantLabel={displayName}
-          voiceOutputMode={voiceOutputMode}
-        />
+        <ChatBubble key={m.id} message={m} assistantLabel={displayName} />
       ))}
-      {showTyping ? (
-        <TypingIndicator label={loadingLabel} waveform={voiceOutputMode} />
-      ) : null}
-      {showSpeaking && !showTyping ? (
-        <TypingIndicator label="Speaking…" waveform speaking />
-      ) : null}
+      {showTyping ? <TypingIndicator label="Thinking…" /> : null}
+      <div ref={messagesEndRef} className={styles.messagesEnd} aria-hidden />
     </div>
   );
 }
@@ -1167,23 +977,10 @@ function ChatMessages({
 function ChatBubble({
   message,
   assistantLabel,
-  voiceOutputMode,
 }: {
   message: ChatMessage;
   assistantLabel: string;
-  voiceOutputMode: boolean;
 }) {
-  const microUi =
-    message.role === "assistant" && message.readybotMicroStep
-      ? readybotMicroStepUi(message.readybotMicroStep)
-      : null;
-  const isMicroStep =
-    message.role === "assistant" &&
-    Boolean(microUi || message.microStepLabel?.trim());
-  const isStackMicroStep = Boolean(
-    message.readybotMicroStep?.startsWith("stack_")
-  );
-
   const className =
     message.role === "user"
       ? styles.bubbleUser
@@ -1191,11 +988,7 @@ function ChatBubble({
         ? styles.bubbleStaff
         : message.role === "system"
           ? styles.bubbleSystem
-          : isMicroStep
-            ? `${styles.bubbleAssistant} ${
-                isStackMicroStep ? styles.bubbleMicroStepStack : styles.bubbleMicroStep
-              }`
-            : styles.bubbleAssistant;
+          : styles.bubbleAssistant;
 
   const label =
     message.role === "user"
@@ -1208,26 +1001,7 @@ function ChatBubble({
     <div className={`${className} ${styles.bubbleEnter}`}>
       {message.role !== "system" ? (
         <div className={styles.bubbleHeader}>
-          <div className={styles.bubbleHeaderLeft}>
-            <p className={styles.bubbleLabel}>{label}</p>
-            {isMicroStep ? (
-              <span
-                className={
-                  isStackMicroStep
-                    ? `${styles.microBadge} ${styles.microBadgeStack}`
-                    : styles.microBadge
-                }
-              >
-                {microUi
-                  ? `${microUi.badge}${
-                      microUi.stage === "Discovery"
-                        ? ` · Step ${microUi.stepIndex}`
-                        : ""
-                    }`
-                  : message.microStepLabel}
-              </span>
-            ) : null}
-          </div>
+          <p className={styles.bubbleLabel}>{label}</p>
           {message.at ? (
             <time className={styles.bubbleTime} dateTime={message.at}>
               {formatMessageTime(message.at)}
@@ -1235,26 +1009,7 @@ function ChatBubble({
           ) : null}
         </div>
       ) : null}
-      {microUi ? (
-        <p className={styles.microStepCaption}>{microUi.topic}</p>
-      ) : null}
-      {message.role === "user" && message.inputMode === "audio" ? (
-        <UserVoiceNote
-          audioUrl={message.localAudioUrl}
-          durationSec={message.audioDurationSec}
-          transcript={message.content}
-          playable={Boolean(message.localAudioUrl)}
-        />
-      ) : (
-        <p className={styles.bubbleText}>{renderBoldMarkdown(message.content)}</p>
-      )}
-      {message.role === "assistant" && voiceOutputMode ? (
-        <LiveAgentAudioControls
-          text={message.content}
-          audioBase64={message.audioBase64}
-          audioMimeType={message.audioMimeType}
-        />
-      ) : null}
+      <p className={styles.bubbleText}>{renderBoldMarkdown(message.content)}</p>
     </div>
   );
 }
@@ -1313,68 +1068,14 @@ function MicIcon({
   );
 }
 
-const TYPING_WAVE_BARS = [4, 7, 5, 9, 6, 8, 5, 7, 4, 6];
-
-function StatusIndicator({
-  label,
-  variant,
-}: {
-  label: string;
-  variant: "transcribing" | "typing" | "speaking" | "listening" | "default";
-}) {
-  if (variant === "transcribing" || variant === "speaking") {
-    return (
-      <span className={styles.statusWave} aria-hidden>
-        {TYPING_WAVE_BARS.map((h, i) => (
-          <span
-            key={i}
-            className={styles.statusWaveBar}
-            style={{ height: `${h * 2}px`, animationDelay: `${i * 0.07}s` }}
-          />
-        ))}
-      </span>
-    );
-  }
-  if (variant === "typing") {
-    return (
-      <span className={styles.statusDots} aria-hidden>
-        <span />
-        <span />
-        <span />
-      </span>
-    );
-  }
-  return <span className={styles.sessionPulseDot} aria-hidden title={label} />;
-}
-
-function TypingIndicator({
-  label,
-  waveform,
-  speaking,
-}: {
-  label: string;
-  waveform?: boolean;
-  speaking?: boolean;
-}) {
+function TypingIndicator({ label }: { label: string }) {
   return (
     <div className={styles.typingRow} aria-label={label} aria-live="polite">
-      {waveform || speaking ? (
-        <div className={styles.typingWave}>
-          {TYPING_WAVE_BARS.map((h, i) => (
-            <span
-              key={i}
-              className={styles.typingWaveBar}
-              style={{ height: `${h * 3}px`, animationDelay: `${i * 0.06}s` }}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className={styles.typing}>
-          <span />
-          <span />
-          <span />
-        </div>
-      )}
+      <div className={styles.typing}>
+        <span />
+        <span />
+        <span />
+      </div>
       <span className={styles.typingLabel}>{label}</span>
     </div>
   );

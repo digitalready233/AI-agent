@@ -42,6 +42,8 @@ export const workflowInputSchema = z.object({
   externalMessageId: z.string().max(256).optional(),
   inputMode: z.enum(["text", "audio"]).optional(),
   turnTimestamp: z.string().max(64).optional(),
+  /** Earlier visitor session — used for LLM context only (not shown in the new thread UI). */
+  priorSessionId: z.string().min(1).max(128).optional(),
 });
 
 export const workflowAnalysisSchema = z.object({
