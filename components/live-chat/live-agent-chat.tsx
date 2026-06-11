@@ -52,6 +52,7 @@ type ChatMessage = UiChatMessage & {
   localAudioUrl?: string;
   audioDurationSec?: number;
   at?: string;
+  microStepLabel?: string | null;
 };
 
 type PlatformChatResponse = PlatformChatResponseBody & {
@@ -99,7 +100,7 @@ function quickPromptsForAgent(
     return [
       ...READYBOT_BUDGET_QUICK_REPLIES.map((p) => ({ ...p, variant: "accent" as const })),
       {
-        label: "Talk to Sales",
+        label: "Speak to Team",
         message: "I'd like to speak with someone on your sales team.",
         variant: "sales" as const,
       },
@@ -125,7 +126,7 @@ function quickPromptsForAgent(
         variant: "accent" as const,
       },
       {
-        label: "Talk to Sales",
+        label: "Speak to Team",
         message: "I'd like to speak with someone on your sales team.",
         variant: "sales" as const,
       },
@@ -151,7 +152,7 @@ function quickPromptsForAgent(
         variant: "accent" as const,
       },
       {
-        label: "Talk to Sales",
+        label: "Speak to Team",
         message: "I'd like to speak with someone on your sales team.",
         variant: "sales" as const,
       },
@@ -165,7 +166,7 @@ function quickPromptsForAgent(
       variant: "accent" as const,
     },
     {
-      label: "Talk to Sales",
+      label: "Speak to Team",
       message: "I'd like to speak with someone on your sales team.",
       variant: "sales" as const,
     },
@@ -304,6 +305,11 @@ export function LiveAgentChat({
 
   const applyPlatformResponse = useCallback(
     (data: PlatformChatResponse) => {
+      const microLabel =
+        data.readybotMicroStep != null
+          ? readybotMicroStepLabel(data.readybotMicroStep)
+          : null;
+
       setMessages((prev) => [
         ...prev,
         {
@@ -312,6 +318,7 @@ export function LiveAgentChat({
           content: data.reply?.trim() || "Thanks for your message.",
           audioBase64: data.audioBase64,
           audioMimeType: data.audioMimeType,
+          microStepLabel: microLabel,
           at: new Date().toISOString(),
         },
       ]);
@@ -465,7 +472,7 @@ export function LiveAgentChat({
       top: scrollRef.current.scrollHeight,
       behavior: "smooth",
     });
-  }, [messages, isLoading, handoffActive]);
+  }, [messages, isLoading, handoffActive, voiceStatus]);
 
   useEffect(() => {
     const storageKey = sessionStorageKey(agentId);
@@ -712,47 +719,66 @@ export function LiveAgentChat({
 
       <LiveAgentStageBar activeStage={uiPipelineStage} />
 
-      {sessionStatus ? (
-        <p className={styles.sessionStatus} role="status" aria-live="polite">
-          {sessionStatus}
-        </p>
-      ) : null}
+      <div className={styles.conversationPanel}>
+        <LiveAgentSalesStrip
+          stage={uiPipelineStage}
+          intent={detectedIntent}
+          leadCategory={leadCategory}
+          nextAction={
+            readybotMicroStep
+              ? readybotMicroStepLabel(readybotMicroStep) ?? recommendedNextAction
+              : recommendedNextAction
+          }
+          handoffActive={handoffActive}
+          staffJoined={staffJoined}
+          bookingReady={showBooking}
+        />
 
-      <LiveAgentSalesStrip
-        stage={conversationStage}
-        intent={detectedIntent}
-        leadCategory={leadCategory}
-        nextAction={
-          readybotMicroStep
-            ? readybotMicroStepLabel(readybotMicroStep) ?? recommendedNextAction
-            : recommendedNextAction
-        }
-        handoffActive={handoffActive}
-        staffJoined={staffJoined}
-        bookingReady={showBooking}
-      />
+        {sessionStatus ? (
+          <div className={styles.sessionStatus} role="status" aria-live="polite">
+            <StatusIndicator
+              label={sessionStatus}
+              variant={
+                voiceStatus === "processing"
+                  ? "transcribing"
+                  : voiceStatus === "ai_speaking"
+                    ? "speaking"
+                    : isLoading
+                      ? "typing"
+                      : voiceStatus === "listening"
+                        ? "listening"
+                        : "default"
+              }
+            />
+            <span>{sessionStatus}</span>
+          </div>
+        ) : null}
 
-      <ChatMessages
-        scrollRef={scrollRef}
-        messages={messages}
-        displayName={displayName}
-        loadingLabel={
-          voiceStatus === "processing"
-            ? "Transcribing…"
-            : voiceStatus === "listening"
-              ? "Listening…"
-              : "Typing…"
-        }
-        showTyping={isLoading || voiceStatus === "processing"}
-        voiceOutputMode={voiceOutputMode}
-      />
+        <ChatMessages
+          scrollRef={scrollRef}
+          messages={messages}
+          displayName={displayName}
+          loadingLabel={
+            voiceStatus === "processing"
+              ? "Transcribing…"
+              : voiceStatus === "listening"
+                ? "Listening…"
+                : voiceStatus === "ai_speaking"
+                  ? "Speaking…"
+                  : "Typing…"
+          }
+          showTyping={isLoading || voiceStatus === "processing"}
+          showSpeaking={voiceStatus === "ai_speaking"}
+          voiceOutputMode={voiceOutputMode}
+        />
 
-      <QuickPrompts
-        disabled={isLoading}
-        hidden={handoffActive}
-        prompts={quickPrompts}
-        onSelect={(t) => void sendMessage(t)}
-      />
+        <QuickPrompts
+          disabled={isLoading || voiceStatus === "processing"}
+          hidden={handoffActive}
+          prompts={quickPrompts}
+          onSelect={(t) => void sendMessage(t)}
+        />
+      </div>
 
       {showBooking && !handoffActive && sessionId ? (
         <LiveAgentBookingPanel
@@ -808,8 +834,8 @@ export function LiveAgentChat({
             </div>
           </div>
           <div className={styles.toolbarGroup}>
-            <span className={styles.toolbarLabel}>AI replies</span>
-            <div className={styles.segmented} role="group" aria-label="Reply mode">
+            <span className={styles.toolbarLabel}>Responses</span>
+            <div className={styles.segmented} role="group" aria-label="AI response mode">
               <button
                 type="button"
                 className={
@@ -820,7 +846,7 @@ export function LiveAgentChat({
                 onClick={() => setVoiceOutputMode(false)}
                 aria-pressed={!voiceOutputMode}
               >
-                Text
+                Text only
               </button>
               <button
                 type="button"
@@ -832,7 +858,7 @@ export function LiveAgentChat({
                 onClick={() => setVoiceOutputMode(true)}
                 aria-pressed={voiceOutputMode}
               >
-                Audio
+                Audio + Text
               </button>
             </div>
           </div>
@@ -976,6 +1002,7 @@ function ChatMessages({
   displayName,
   loadingLabel,
   showTyping,
+  showSpeaking,
   voiceOutputMode,
 }: {
   scrollRef: RefObject<HTMLDivElement | null>;
@@ -983,6 +1010,7 @@ function ChatMessages({
   displayName: string;
   loadingLabel: string;
   showTyping: boolean;
+  showSpeaking?: boolean;
   voiceOutputMode: boolean;
 }) {
   return (
@@ -996,14 +1024,10 @@ function ChatMessages({
         />
       ))}
       {showTyping ? (
-        <div className={styles.typingRow} aria-label={loadingLabel} aria-live="polite">
-          <div className={styles.typing}>
-            <span />
-            <span />
-            <span />
-          </div>
-          <span className={styles.typingLabel}>{loadingLabel}</span>
-        </div>
+        <TypingIndicator label={loadingLabel} waveform={voiceOutputMode} />
+      ) : null}
+      {showSpeaking && !showTyping ? (
+        <TypingIndicator label="Speaking…" waveform speaking />
       ) : null}
     </div>
   );
@@ -1018,6 +1042,9 @@ function ChatBubble({
   assistantLabel: string;
   voiceOutputMode: boolean;
 }) {
+  const isMicroStep =
+    message.role === "assistant" && Boolean(message.microStepLabel?.trim());
+
   const className =
     message.role === "user"
       ? styles.bubbleUser
@@ -1025,7 +1052,9 @@ function ChatBubble({
         ? styles.bubbleStaff
         : message.role === "system"
           ? styles.bubbleSystem
-          : styles.bubbleAssistant;
+          : isMicroStep
+            ? `${styles.bubbleAssistant} ${styles.bubbleMicroStep}`
+            : styles.bubbleAssistant;
 
   const label =
     message.role === "user"
@@ -1038,7 +1067,12 @@ function ChatBubble({
     <div className={`${className} ${styles.bubbleEnter}`}>
       {message.role !== "system" ? (
         <div className={styles.bubbleHeader}>
-          <p className={styles.bubbleLabel}>{label}</p>
+          <div className={styles.bubbleHeaderLeft}>
+            <p className={styles.bubbleLabel}>{label}</p>
+            {isMicroStep && message.microStepLabel ? (
+              <span className={styles.microBadge}>{message.microStepLabel}</span>
+            ) : null}
+          </div>
           {message.at ? (
             <time className={styles.bubbleTime} dateTime={message.at}>
               {formatMessageTime(message.at)}
@@ -1121,6 +1155,73 @@ function MicIcon({
   );
 }
 
+const TYPING_WAVE_BARS = [4, 7, 5, 9, 6, 8, 5, 7, 4, 6];
+
+function StatusIndicator({
+  label,
+  variant,
+}: {
+  label: string;
+  variant: "transcribing" | "typing" | "speaking" | "listening" | "default";
+}) {
+  if (variant === "transcribing" || variant === "speaking") {
+    return (
+      <span className={styles.statusWave} aria-hidden>
+        {TYPING_WAVE_BARS.map((h, i) => (
+          <span
+            key={i}
+            className={styles.statusWaveBar}
+            style={{ height: `${h * 2}px`, animationDelay: `${i * 0.07}s` }}
+          />
+        ))}
+      </span>
+    );
+  }
+  if (variant === "typing") {
+    return (
+      <span className={styles.statusDots} aria-hidden>
+        <span />
+        <span />
+        <span />
+      </span>
+    );
+  }
+  return <span className={styles.sessionPulseDot} aria-hidden title={label} />;
+}
+
+function TypingIndicator({
+  label,
+  waveform,
+  speaking,
+}: {
+  label: string;
+  waveform?: boolean;
+  speaking?: boolean;
+}) {
+  return (
+    <div className={styles.typingRow} aria-label={label} aria-live="polite">
+      {waveform || speaking ? (
+        <div className={styles.typingWave}>
+          {TYPING_WAVE_BARS.map((h, i) => (
+            <span
+              key={i}
+              className={styles.typingWaveBar}
+              style={{ height: `${h * 3}px`, animationDelay: `${i * 0.06}s` }}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className={styles.typing}>
+          <span />
+          <span />
+          <span />
+        </div>
+      )}
+      <span className={styles.typingLabel}>{label}</span>
+    </div>
+  );
+}
+
 function formatMessageTime(iso: string): string {
   try {
     return new Date(iso).toLocaleTimeString(undefined, {
@@ -1146,6 +1247,8 @@ function QuickPrompts({
   if (hidden) return null;
   return (
     <div className={styles.quickRow}>
+      <p className={styles.quickLabel}>Quick actions</p>
+      <div className={styles.quickBtnRow}>
       {prompts.map((p) => (
         <button
           key={p.label}
@@ -1163,6 +1266,7 @@ function QuickPrompts({
           {p.label}
         </button>
       ))}
+      </div>
     </div>
   );
 }
