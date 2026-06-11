@@ -10,13 +10,16 @@ export type LlmProviderId = "openai" | "groq" | "ollama";
  */
 export function getLlmProvider(): LlmProviderId {
   const explicit = process.env.AI_PROVIDER?.toLowerCase()?.trim();
-  if (
-    explicit === "openai" ||
-    explicit === "groq" ||
-    explicit === "ollama"
-  ) {
-    return explicit;
+  if (explicit === "openai") {
+    if (process.env.OPENAI_API_KEY?.trim()) return "openai";
+    if (process.env.GROQ_API_KEY?.trim()) return "groq";
   }
+  if (explicit === "groq") {
+    if (process.env.GROQ_API_KEY?.trim()) return "groq";
+    if (process.env.OPENAI_API_KEY?.trim()) return "openai";
+  }
+  if (explicit === "ollama") return "ollama";
+
   if (process.env.OPENAI_API_KEY?.trim()) return "openai";
   if (process.env.GROQ_API_KEY?.trim()) return "groq";
   return "ollama";

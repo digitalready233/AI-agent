@@ -7,26 +7,65 @@ export type DemoTranscriptionResult = {
   language: string | null;
 };
 
-/** Server-side speech-to-text via OpenAI (never expose API key to the browser). */
+type SttBackend = {
+  client: OpenAI;
+  model: string;
+};
+
+function resolveSttBackend(): SttBackend {
+  const groqKey = process.env.GROQ_API_KEY?.trim();
+  const openaiKey = process.env.OPENAI_API_KEY?.trim();
+  const preferGroq =
+    process.env.AI_PROVIDER?.toLowerCase()?.trim() === "groq" ||
+    (Boolean(groqKey) && !openaiKey);
+
+  if (preferGroq && groqKey) {
+    return {
+      client: new OpenAI({
+        apiKey: groqKey,
+        baseURL: "https://api.groq.com/openai/v1",
+      }),
+      model: process.env.GROQ_WHISPER_MODEL?.trim() || "whisper-large-v3-turbo",
+    };
+  }
+  if (openaiKey) {
+    return {
+      client: new OpenAI({ apiKey: openaiKey }),
+      model: "whisper-1",
+    };
+  }
+  if (groqKey) {
+    return {
+      client: new OpenAI({
+        apiKey: groqKey,
+        baseURL: "https://api.groq.com/openai/v1",
+      }),
+      model: process.env.GROQ_WHISPER_MODEL?.trim() || "whisper-large-v3-turbo",
+    };
+  }
+  throw new Error(
+    "Speech-to-text requires GROQ_API_KEY or OPENAI_API_KEY on the server."
+  );
+}
+
+/** Server-side speech-to-text via Groq Whisper or OpenAI Whisper. */
 export async function transcribeDemoAudio(params: {
   audioBuffer: Buffer;
   mimeType: string;
   filename?: string;
 }): Promise<DemoTranscriptionResult> {
-  const apiKey = process.env.OPENAI_API_KEY?.trim();
-  if (!apiKey) {
-    throw new Error("OPENAI_API_KEY is not configured for transcription.");
+  if (params.audioBuffer.length < 512) {
+    throw new Error("Recording too short. Hold the mic a little longer and try again.");
   }
 
-  const client = new OpenAI({ apiKey });
-  const ext =
-    params.mimeType.includes("webm")
-      ? "webm"
-      : params.mimeType.includes("mp4") || params.mimeType.includes("m4a")
-        ? "m4a"
-        : params.mimeType.includes("wav")
-          ? "wav"
-          : "webm";
+  const { client, model } = resolveSttBackend();
+  const ext = params.mimeType.includes("webm")
+    ? "webm"
+    : params.mimeType.includes("mp4") || params.mimeType.includes("m4a")
+      ? "m4a"
+      : params.mimeType.includes("wav")
+        ? "wav"
+        : "webm";
 
   const file = await toFile(params.audioBuffer, params.filename ?? `demo-audio.${ext}`, {
     type: params.mimeType || "audio/webm",
@@ -34,7 +73,7 @@ export async function transcribeDemoAudio(params: {
 
   const response = await client.audio.transcriptions.create({
     file,
-    model: "whisper-1",
+    model,
     language: "en",
     response_format: "verbose_json",
   });
@@ -47,7 +86,7 @@ export async function transcribeDemoAudio(params: {
 
   const transcript = (verbose.text ?? "").trim();
   if (!transcript) {
-    throw new Error("No speech detected in the recording.");
+    throw new Error("No speech detected in the recording. Try speaking closer to the mic.");
   }
 
   let confidence: number | null = null;

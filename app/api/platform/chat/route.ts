@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { isLlmConfigured } from "@/lib/agent/llm-env";
+import { isLlmConfigured, llmConfigErrorMessage } from "@/lib/agent/llm-env";
 import {
   PublicChatGuardError,
   assertPublicChatRateLimit,
@@ -89,10 +89,7 @@ export async function POST(req: Request) {
     );
   }
   if (!isLlmConfigured()) {
-    return Response.json(
-      { error: "LLM not configured. Set OPENAI_API_KEY on the server." },
-      { status: 503 }
-    );
+    return Response.json({ error: llmConfigErrorMessage() }, { status: 503 });
   }
 
   const parsed = bodySchema.safeParse(await req.json());

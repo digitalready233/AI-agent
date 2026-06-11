@@ -245,6 +245,20 @@
   box-shadow: 0 0 12px rgba(34, 211, 238, 0.08);
 }
 
+.microBadgeStack {
+  color: #c7d2fe;
+  border-color: rgba(129, 140, 248, 0.4);
+  background: rgba(99, 102, 241, 0.14);
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.1);
+}
+
+.microStepCaption {
+  margin: 0 0 0.35rem;
+  font-size: 0.68rem;
+  line-height: 1.4;
+  color: #64748b;
+}
+
 .bubbleUser,
 .bubbleAssistant,
 .bubbleStaff,
@@ -276,6 +290,13 @@
   box-shadow:
     0 0 0 1px rgba(34, 211, 238, 0.08),
     0 8px 28px rgba(34, 211, 238, 0.06);
+}
+
+.bubbleMicroStepStack {
+  border-color: rgba(129, 140, 248, 0.38);
+  box-shadow:
+    0 0 0 1px rgba(99, 102, 241, 0.1),
+    0 8px 28px rgba(99, 102, 241, 0.08);
 }
 
 .bubbleStaff {
@@ -437,6 +458,11 @@
   background: rgba(34, 211, 238, 0.08);
 }
 
+.quickBtn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+
 .quickBtnAccent {
   padding: 0.48rem 0.85rem;
   font-size: 0.72rem;
@@ -463,6 +489,11 @@
   box-shadow: 0 8px 22px rgba(34, 211, 238, 0.14);
 }
 
+.quickBtnAccent:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(34, 211, 238, 0.1);
+}
+
 .quickBtnSales {
   padding: 0.48rem 0.85rem;
   font-size: 0.72rem;
@@ -487,6 +518,11 @@
   background: rgba(245, 158, 11, 0.18);
   transform: translateY(-1px);
   box-shadow: 0 8px 20px rgba(245, 158, 11, 0.12);
+}
+
+.quickBtnSales:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.1);
 }
 
 .quickBtnAccent:disabled,

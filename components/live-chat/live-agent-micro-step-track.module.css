@@ -1,0 +1,127 @@
+.track {
+  flex-shrink: 0;
+  padding: 0.65rem 1rem 0.55rem;
+  border-bottom: 1px solid rgba(51, 65, 85, 0.4);
+  background: rgba(10, 14, 24, 0.75);
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 0.68rem;
+  color: #94a3b8;
+  line-height: 1.4;
+}
+
+.steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.step {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.55rem;
+  border-radius: 10px;
+  border: 1px solid rgba(51, 65, 85, 0.55);
+  background: rgba(15, 23, 42, 0.55);
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: #64748b;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.stepNum {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.15rem;
+  height: 1.15rem;
+  padding: 0 0.25rem;
+  border-radius: 999px;
+  font-size: 0.58rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  background: rgba(51, 65, 85, 0.65);
+  color: #94a3b8;
+}
+
+.stepActive {
+  color: #e0f2fe;
+  border-color: rgba(34, 211, 238, 0.45);
+  background: rgba(34, 211, 238, 0.1);
+  box-shadow: 0 0 16px rgba(34, 211, 238, 0.12);
+}
+
+.stepActive .stepNum {
+  background: rgba(34, 211, 238, 0.25);
+  color: #67e8f9;
+}
+
+.stepDone {
+  color: #94a3b8;
+  border-color: rgba(52, 211, 153, 0.28);
+  background: rgba(16, 185, 129, 0.06);
+}
+
+.stepDone .stepNum {
+  background: rgba(52, 211, 153, 0.2);
+  color: #6ee7b7;
+}
+
+.stepStackActive {
+  border-color: rgba(129, 140, 248, 0.45);
+  background: rgba(99, 102, 241, 0.12);
+  box-shadow: 0 0 16px rgba(99, 102, 241, 0.12);
+}
+
+.stepStackActive .stepNum {
+  background: rgba(129, 140, 248, 0.28);
+  color: #c7d2fe;
+}
+
+.hint {
+  margin: 0.45rem 0 0;
+  font-size: 0.68rem;
+  line-height: 1.45;
+  color: #64748b;
+}
+
+.hint em {
+  font-style: normal;
+  color: #94a3b8;
+}
+
+@media (max-width: 640px) {
+  .track {
+    padding: 0.55rem 0.85rem 0.5rem;
+  }
+
+  .step {
+    flex: 1 1 calc(50% - 0.35rem);
+    min-width: 0;
+    font-size: 0.64rem;
+  }
+}

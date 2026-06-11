@@ -21,7 +21,9 @@ import {
 } from "@/lib/copy/public-messaging";
 import { LiveAgentSalesStrip } from "@/components/live-chat/live-agent-sales-strip";
 import { LiveAgentStageBar } from "@/components/live-chat/live-agent-stage-bar";
+import { LiveAgentMicroStepTrack } from "@/components/live-chat/live-agent-micro-step-track";
 import { resolveUiPipelineStage } from "@/lib/live-chat/pipeline-stages";
+import { readybotMicroStepUi } from "@/lib/live-chat/readybot-micro-step-ui";
 import type { VisitorChatMessage } from "@/lib/platform/visitor-chat";
 import { LiveAgentBookingPanel } from "./live-agent-booking-panel";
 import { LiveAgentAudioControls } from "./live-agent-audio-controls";
@@ -34,7 +36,10 @@ import {
   visitorAuthHeaders,
 } from "@/lib/auth/visitor-session-client";
 import type { PlatformChatResponseBody } from "@/lib/platform/chat/build-platform-chat-response";
-import { readybotMicroStepLabel } from "@/lib/platform/workflow/readybot-micro-steps";
+import {
+  readybotMicroStepLabel,
+  type ReadybotMicroStep,
+} from "@/lib/platform/workflow/readybot-micro-steps";
 import styles from "./live-agent-chat.module.css";
 
 export type LiveAgentMeta = {
@@ -53,6 +58,7 @@ type ChatMessage = UiChatMessage & {
   audioDurationSec?: number;
   at?: string;
   microStepLabel?: string | null;
+  readybotMicroStep?: ReadybotMicroStep;
 };
 
 type PlatformChatResponse = PlatformChatResponseBody & {
@@ -100,7 +106,7 @@ function quickPromptsForAgent(
     return [
       ...READYBOT_BUDGET_QUICK_REPLIES.map((p) => ({ ...p, variant: "accent" as const })),
       {
-        label: "Speak to Team",
+        label: "Talk to Sales",
         message: "I'd like to speak with someone on your sales team.",
         variant: "sales" as const,
       },
@@ -126,7 +132,7 @@ function quickPromptsForAgent(
         variant: "accent" as const,
       },
       {
-        label: "Speak to Team",
+        label: "Talk to Sales",
         message: "I'd like to speak with someone on your sales team.",
         variant: "sales" as const,
       },
@@ -152,7 +158,7 @@ function quickPromptsForAgent(
         variant: "accent" as const,
       },
       {
-        label: "Speak to Team",
+        label: "Talk to Sales",
         message: "I'd like to speak with someone on your sales team.",
         variant: "sales" as const,
       },
@@ -166,7 +172,7 @@ function quickPromptsForAgent(
       variant: "accent" as const,
     },
     {
-      label: "Speak to Team",
+      label: "Talk to Sales",
       message: "I'd like to speak with someone on your sales team.",
       variant: "sales" as const,
     },
@@ -268,6 +274,20 @@ export function LiveAgentChat({
     [meta, conversationStage, readybotPipelineStep]
   );
 
+  const seenMicroSteps = useMemo(() => {
+    const seen = new Set<NonNullable<ReadybotMicroStep>>();
+    for (const m of messages) {
+      if (m.role === "assistant" && m.readybotMicroStep) {
+        seen.add(m.readybotMicroStep);
+      }
+    }
+    return seen;
+  }, [messages]);
+
+  const showMicroStepTrack =
+    isReadybotAgent(meta) &&
+    (uiPipelineStage === "discovery" || uiPipelineStage === "stack");
+
   const handoffPollEnabled = handoffActive && Boolean(sessionId);
 
   const applySyncMessages = useCallback((merged: VisitorChatMessage[]) => {
@@ -319,6 +339,7 @@ export function LiveAgentChat({
           audioBase64: data.audioBase64,
           audioMimeType: data.audioMimeType,
           microStepLabel: microLabel,
+          readybotMicroStep: data.readybotMicroStep ?? null,
           at: new Date().toISOString(),
         },
       ]);
@@ -734,6 +755,14 @@ export function LiveAgentChat({
           bookingReady={showBooking}
         />
 
+        {showMicroStepTrack ? (
+          <LiveAgentMicroStepTrack
+            pipelineStage={uiPipelineStage}
+            currentMicroStep={readybotMicroStep}
+            seenMicroSteps={seenMicroSteps}
+          />
+        ) : null}
+
         {sessionStatus ? (
           <div className={styles.sessionStatus} role="status" aria-live="polite">
             <StatusIndicator
@@ -1042,8 +1071,16 @@ function ChatBubble({
   assistantLabel: string;
   voiceOutputMode: boolean;
 }) {
+  const microUi =
+    message.role === "assistant" && message.readybotMicroStep
+      ? readybotMicroStepUi(message.readybotMicroStep)
+      : null;
   const isMicroStep =
-    message.role === "assistant" && Boolean(message.microStepLabel?.trim());
+    message.role === "assistant" &&
+    Boolean(microUi || message.microStepLabel?.trim());
+  const isStackMicroStep = Boolean(
+    message.readybotMicroStep?.startsWith("stack_")
+  );
 
   const className =
     message.role === "user"
@@ -1053,7 +1090,9 @@ function ChatBubble({
         : message.role === "system"
           ? styles.bubbleSystem
           : isMicroStep
-            ? `${styles.bubbleAssistant} ${styles.bubbleMicroStep}`
+            ? `${styles.bubbleAssistant} ${
+                isStackMicroStep ? styles.bubbleMicroStepStack : styles.bubbleMicroStep
+              }`
             : styles.bubbleAssistant;
 
   const label =
@@ -1069,8 +1108,22 @@ function ChatBubble({
         <div className={styles.bubbleHeader}>
           <div className={styles.bubbleHeaderLeft}>
             <p className={styles.bubbleLabel}>{label}</p>
-            {isMicroStep && message.microStepLabel ? (
-              <span className={styles.microBadge}>{message.microStepLabel}</span>
+            {isMicroStep ? (
+              <span
+                className={
+                  isStackMicroStep
+                    ? `${styles.microBadge} ${styles.microBadgeStack}`
+                    : styles.microBadge
+                }
+              >
+                {microUi
+                  ? `${microUi.badge}${
+                      microUi.stage === "Discovery"
+                        ? ` · Step ${microUi.stepIndex}`
+                        : ""
+                    }`
+                  : message.microStepLabel}
+              </span>
             ) : null}
           </div>
           {message.at ? (
@@ -1079,6 +1132,9 @@ function ChatBubble({
             </time>
           ) : null}
         </div>
+      ) : null}
+      {microUi ? (
+        <p className={styles.microStepCaption}>{microUi.topic}</p>
       ) : null}
       {message.role === "user" && message.inputMode === "audio" ? (
         <UserVoiceNote
